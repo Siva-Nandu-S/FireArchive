@@ -1,5 +1,4 @@
 // ignore_for_file: unnecessary_new
-
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
 import 'package:fire_archive/location_service.dart';
@@ -19,7 +18,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(fontFamily: 'Poppins'), 
+      theme: ThemeData(fontFamily: 'Poppins'),
       title: 'Fire Archive',
       home: const MapSample(),
     );
@@ -46,7 +45,7 @@ class MapSampleState extends State<MapSample> {
   int _polylineIdCounter = 1;
 
   // ignore: prefer_typing_uninitialized_variables
-  late List<List<dynamic>> locations;
+  List<List<String>>? locations;
 
   void getHotspots() async {
     var url = Uri.parse(
@@ -63,23 +62,31 @@ class MapSampleState extends State<MapSample> {
   }
 
   static const CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(39.113014, -105.358887),
-    zoom: 3,
+    target: LatLng(37.42796133580664, -122.085749655962),
+    zoom: 1,
   );
+
+
+  Timer scheduleTimeout([int milliseconds = 15000]) =>
+      Timer(const Duration(milliseconds: 15000), setMarkers);
+
+  void setMarkers() {
+    getHotspots();
+    if (locations != null) {
+      for (var i = 0; i < locations!.length; i++) {
+        _setMarker(LatLng(
+            double.parse(locations![i][1]), double.parse(locations![i][2])));
+      }
+    }
+  }
 
   // country_id,latitude,longitude,bright_ti4,scan,track,acq_date,acq_time,satellite,instrument,confidence,version,bright_ti5,frp,daynight
 
   @override
   void initState() {
     super.initState();
-    getHotspots();
-    // ignore: unused_local_variable
-    var timer = Timer(const Duration(seconds: 15), () => {
-      for (var i = 0; i < locations.length; i++) {
-        _setMarker(LatLng(locations[i][1] as double, locations[i][2] as double))
-      }
-    });
-    
+    scheduleTimeout();
+
     // _setMarker(const LatLng(37.42796133580664, -122.085749655962));
   }
 
@@ -108,24 +115,6 @@ class MapSampleState extends State<MapSample> {
     );
   }
 
-  void _setPolyline(List<PointLatLng> points) {
-    final String polylineIdVal = 'polyline_$_polylineIdCounter';
-    _polylineIdCounter++;
-
-    _polylines.add(
-      Polyline(
-        polylineId: PolylineId(polylineIdVal),
-        width: 2,
-        color: Colors.blue,
-        points: points
-            .map(
-              (point) => LatLng(point.latitude, point.longitude),
-            )
-            .toList(),
-      ),
-    );
-  }
-
   late String searchedLocation;
 
   @override
@@ -142,28 +131,29 @@ class MapSampleState extends State<MapSample> {
                   children: [
                     TextFormField(
                       controller: _locationController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         filled: true,
                         fillColor: Colors.white,
                         contentPadding: const EdgeInsets.all(15),
                         hintText: 'Search Location',
                         hintStyle: const TextStyle(
-                        color: Color(0xffDDDADA),
-                        fontSize: 15,
+                          color: Color(0xffDDDADA),
+                          fontSize: 15,
                         ),
                         prefixIcon: Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: SvgPicture.asset(
-                          'assets/icons/loc-1.svg',
-                          colorFilter: const ColorFilter.mode(Color.fromARGB(255, 109, 107, 106), BlendMode.srcIn),
+                          padding: const EdgeInsets.all(8),
+                          child: SvgPicture.asset(
+                            'assets/icons/loc-1.svg',
+                            colorFilter: const ColorFilter.mode(
+                                Color.fromARGB(255, 109, 107, 106),
+                                BlendMode.srcIn),
                           ),
                         ),
                         border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
                         ),
                       ),
-
                       onChanged: (value) {
                         searchedLocation = value;
                       },
@@ -180,20 +170,20 @@ class MapSampleState extends State<MapSample> {
               ),
               IconButton(
                 onPressed: () async {
-                  var directions = await LocationService().getDirections(
-                    _originController.text,
-                    _destinationController.text,
-                  );
-                  _goToPlace(
-                    directions['start_location']['lat'],
-                    directions['start_location']['lng'],
-                    directions['bounds_ne'],
-                    directions['bounds_sw'],
-                  );
+                  // var directions = await LocationService().getDirections(
+                  //   _originController.text,
+                  //   _destinationController.text,
+                  // );
+                  // _goToPlace(
+                  //   directions['start_location']['lat'],
+                  //   directions['start_location']['lng'],
+                  //   directions['bounds_ne'],
+                  //   directions['bounds_sw'],
+                  // );
 
-                  _setPolyline(directions['polyline_decoded']);
+                  // _setPolyline(directions['polyline_decoded']);
                 },
-              icon: const Icon(Icons.search),
+                icon: const Icon(Icons.search),
               ),
             ],
           ),
@@ -222,28 +212,19 @@ class MapSampleState extends State<MapSample> {
 
   AppBar myappbar() {
     return AppBar(
-      title: 
-        const Text('FireArchive🔥', 
-        style: TextStyle(
-          color: Colors.black,
-          fontSize: 20,
-          fontWeight: FontWeight.bold
-        )),
+      title: const Text('FireArchive🔥',
+          style: TextStyle(
+              color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
       backgroundColor: Colors.white,
       elevation: 0.0,
       centerTitle: true,
       leading: GestureDetector(
-        onTap:(){
-
-        },
+        onTap: () {},
         child: Container(
           margin: const EdgeInsets.all(10),
           alignment: Alignment.center,
-          decoration:BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10)
-
-          ),
+          decoration: BoxDecoration(
+              color: Colors.white, borderRadius: BorderRadius.circular(10)),
           child: SvgPicture.asset(
             'assets/icons/menu-1.svg',
             height: 40,
@@ -251,27 +232,22 @@ class MapSampleState extends State<MapSample> {
           ),
         ),
       ),
-
       actions: [
         GestureDetector(
-          onTap:(){
-
-          },
+          onTap: () {},
           child: Container(
             margin: const EdgeInsets.all(10),
             alignment: Alignment.center,
             width: 37,
-            decoration:BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10)
-            ),
+            decoration: BoxDecoration(
+                color: Colors.white, borderRadius: BorderRadius.circular(10)),
             child: SvgPicture.asset(
               'assets/icons/admin-1.svg',
               height: 40,
               width: 40,
             ),
           ),
-        ),  
+        ),
       ],
     );
   }
