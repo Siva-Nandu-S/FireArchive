@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_svg/flutter_svg.dart';
 
 void main() => runApp(const MyApp());
 
@@ -15,9 +16,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(fontFamily: 'Poppins'), 
       title: 'Fire Archive',
-      home: MapSample(),
+      home: const MapSample(),
     );
   }
 }
@@ -5549,9 +5552,8 @@ class MapSampleState extends State<MapSample> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      appBar: AppBar(
-        title: const Text('FireArchive'),
-      ),
+      appBar: myappbar(),
+      backgroundColor: Colors.white,
       body: Column(
         children: [
           Row(
@@ -5561,7 +5563,27 @@ class MapSampleState extends State<MapSample> {
                   children: [
                     TextFormField(
                       controller: _originController,
-                      decoration: const InputDecoration(hintText: ' Location'),
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.all(15),
+                        hintText: 'Search Location',
+                        hintStyle: const TextStyle(
+                        color: Color(0xffDDDADA),
+                        fontSize: 15,
+                        ),
+                        prefixIcon: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: SvgPicture.asset(
+                          'assets/icons/loc-1.svg',
+                          colorFilter: const ColorFilter.mode(Color.fromARGB(255, 109, 107, 106), BlendMode.srcIn),
+                          ),
+                        ),
+                        border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide.none,
+                        ),
+                      ),
                       onChanged: (value) {
                         searchedLocation = value;
                       },
@@ -5591,7 +5613,7 @@ class MapSampleState extends State<MapSample> {
 
                   _setPolyline(directions['polyline_decoded']);
                 },
-                icon: const Icon(Icons.search),
+              icon: const Icon(Icons.search),
               ),
             ],
           ),
@@ -5615,6 +5637,62 @@ class MapSampleState extends State<MapSample> {
           ),
         ],
       ),
+    );
+  }
+
+  AppBar myappbar() {
+    return AppBar(
+      title: 
+        const Text('FireArchive🔥', 
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 20,
+          fontWeight: FontWeight.bold
+        )),
+      backgroundColor: Colors.white,
+      elevation: 0.0,
+      centerTitle: true,
+      leading: GestureDetector(
+        onTap:(){
+
+        },
+        child: Container(
+          margin: const EdgeInsets.all(10),
+          alignment: Alignment.center,
+          decoration:BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10)
+
+          ),
+          child: SvgPicture.asset(
+            'assets/icons/menu-1.svg',
+            height: 40,
+            width: 40,
+          ),
+        ),
+      ),
+
+      actions: [
+        GestureDetector(
+          onTap:(){
+
+          },
+          child: Container(
+            margin: const EdgeInsets.all(10),
+            alignment: Alignment.center,
+            width: 37,
+            decoration:BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10)
+            ),
+            child: SvgPicture.asset(
+              'assets/icons/admin-1.svg',
+              height: 40,
+              width: 40,
+            ),
+          ),
+        ),  
+      ],
     );
   }
 
