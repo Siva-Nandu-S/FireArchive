@@ -1,4 +1,10 @@
 {
     "git.ignoreLimitWarning": true,
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "editor.formatOnSave": false,
+    "[dart]": {
+        "editor.formatOnSave": false
+        
+    }
 }
+
