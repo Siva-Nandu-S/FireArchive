@@ -11,9 +11,8 @@ import 'package:csv/csv.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:fire_archive/components/map_sample_state.dart';
-
-
-void main() async{
+import 'package:label_marker/label_marker.dart';
+void main() async {
   runApp(const MyApp());
   // MapSampleState().getHotspots();
 ();

@@ -6,7 +6,9 @@ import 'package:csv/csv.dart';
 import 'package:fire_archive/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:label_marker/label_marker.dart';
 
 class MapSampleState extends State<MapSample> {
   final Completer<GoogleMapController> _controller =
@@ -14,8 +16,8 @@ class MapSampleState extends State<MapSample> {
   final TextEditingController _locationController =
       TextEditingController(); // This is the controller for the location text field.
 
-  final Set<Marker> _markers =
-      <Marker>{}; // This is the set of markers for the Google Map.
+
+  //final Set<Marker> _markers = <Marker>{}; // This is the set of markers for the Google Map.
   final Set<Polygon> _polygons =
       <Polygon>{}; // This is the set of polygons for the Google Map.
   final Set<Polyline> _polylines =
@@ -56,7 +58,65 @@ class MapSampleState extends State<MapSample> {
         print("From Future Function");
       });
     }
+  // ignore: prefer_typing_uninitialized_variables
+  List<List<dynamic>>?
+      locations; // This is the list of locations for the hotspots.
+
+  get http => null; // This is the http getter for the hotspots API.
+
+  getHotspots() async {
+    // This is the function to get the hotspots.
+    var url = Uri.parse(
+        'https://firms.modaps.eosdis.nasa.gov/api/area/csv/ecc82b64df96a0490420a20ea4546b65/VIIRS_SNPP_NRT/world/1'); // This is the URL for the hotspots API.
+    // make http get request
+    var response = await http.get(url);
+    // check the status code for the result
+    if (response.statusCode == 200) {
+      locations = const CsvToListConverter()
+          .convert(response.body); // This converts the CSV to a list.
+      print(locations);
+    } else {
+      print('Request failed with status: ${response.statusCode}.');
+    }
   }
+
+  static const CameraPosition _kGooglePlex = CameraPosition(
+    // This is the camera position for the Google Map.
+    target: LatLng(20.42796133580664,
+        80.885749655962), // This is the target for the camera position.
+    zoom: 1, // This is the zoom for the camera position.
+  );
+
+  final List<Marker> markers = <Marker>[
+    const Marker(
+        markerId: MarkerId('1'),
+        position: LatLng(20.42796133580664, 75.885749655962),
+        infoWindow: InfoWindow(
+          title: 'Some Position',
+          
+        )),
+  ];
+
+  Future<Position> getUserCurrentLocation() async {
+    await Geolocator.requestPermission()
+        .then((value) {})
+        .onError((error, stackTrace) async {
+      await Geolocator.requestPermission();
+      print("ERROR" + error.toString());
+    });
+    return await Geolocator.getCurrentPosition();
+  }
+
+  // setMarkers() async { // This is the function to set the markers for the hotspots on the Google Map.
+  //   while (locations == null) { // This is the while loop to wait for the locations to be loaded.
+  //     await Future.delayed(const Duration(seconds: 1)); // This is the delay for the while loop.
+  //   }
+
+  //   for (var i = 1; i < locations!.length; i++) { // This is the for loop to set the markers for the hotspots.
+  //     _setMarker(LatLng(
+  //         double.parse(locations![i][0]), double.parse(locations![i][1]))); // This sets the marker for the hotspot.
+  //   }
+  // }
 
   // country_id,latitude,longitude,bright_ti4,scan,track,acq_date,acq_time,satellite,instrument,confidence,version,bright_ti5,frp,daynight
 
@@ -213,8 +273,8 @@ class MapSampleState extends State<MapSample> {
               // This is the Google Map widget to display on the Google Map.
               mapType: MapType
                   .normal, // This is the map type for the Google Map widget to display on the Google Map.
-              markers:
-                  _markers, // This is the set of markers for the Google Map widget to display on the Google Map.
+              markers: Set<Marker>.of(
+                  markers), // This is the set of markers for the Google Map widget to display on the Google Map.
               polygons:
                   _polygons, // This is the set of polygons for the Google Map widget to display on the Google Map.
               polylines:
@@ -239,8 +299,45 @@ class MapSampleState extends State<MapSample> {
           ),
         ],
       ),
+      floatingActionButton: Padding(
+          padding: const EdgeInsets.only(
+              bottom: 50.0), // Adjust the padding as needed
+          child: FloatingActionButton(
+            onPressed: () async {
+              getUserCurrentLocation().then((value) async {
+                //print(value.latitude.toString() +" "+value.longitude.toString());
+
+                // marker added for current users location
+                markers.add(Marker(
+                  markerId: const MarkerId("2"),
+                  position: LatLng(value.latitude, value.longitude),
+                  infoWindow: const InfoWindow(
+                    title: 'My Current Location',
+                  ),
+                  icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure)
+                  
+                ));
+
+                // specified current users location
+                CameraPosition cameraPosition = new CameraPosition(
+                  target: LatLng(value.latitude, value.longitude),
+                  zoom: 14,
+                );
+
+                final GoogleMapController controller = await _controller.future;
+                controller.animateCamera(
+                    CameraUpdate.newCameraPosition(cameraPosition));
+                setState(() {});
+              });
+            },
+            child: const Icon(Icons.local_activity),
+          )
+    ),
+
+          floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
   }
+  
 
   AppBar myappbar() {
     // This is the app bar for the Google Map widget to display on the Google Map widget.
@@ -287,51 +384,31 @@ class MapSampleState extends State<MapSample> {
     );
   }
 
-  Future<void> _goToPlace(
-    // This is the function to go to the place on the Google Map widget.
-    // Map<String, dynamic> place,
-    double lat, // This is the latitude for the Google Map widget.
-    double
-        lng, // This is the function to go to the place on the Google Map widget.
-    Map<String, dynamic> boundsNe,
-    Map<String, dynamic> boundsSw,
-  ) async {
-    // final double lat = place['geometry']['location']['lat'];
-    // final double lng = place['geometry']['location']['lng'];
+  // Future<void> _goToPlace( // This is the function to go to the place on the Google Map widget.
+  //   // Map<String, dynamic> place,
+  //   double lat, // This is the latitude for the Google Map widget.
+  //   double lng, // This is the function to go to the place on the Google Map widget.
+  //   Map<String, dynamic> boundsNe,
+  //   Map<String, dynamic> boundsSw,
+  // ) async {
+  //   // final double lat = place['geometry']['location']['lat'];
+  //   // final double lng = place['geometry']['location']['lng'];
 
-    final GoogleMapController controller = await _controller
-        .future; // This is the controller for the Google Map widget.
-    controller.animateCamera(
-      // This animates the camera for the Google Map widget.
-      CameraUpdate.newCameraPosition(
-        // This is the new camera position for the Google Map widget.
-        CameraPosition(
-            target: LatLng(lat, lng),
-            zoom: 12), // This is the camera position for the Google Map widget.
-      ),
-    );
+  //   final GoogleMapController controller = await _controller.future; // This is the controller for the Google Map widget.
+  //   controller.animateCamera( // This animates the camera for the Google Map widget.
+  //     CameraUpdate.newCameraPosition( // This is the new camera position for the Google Map widget.
+  //       CameraPosition(target: LatLng(lat, lng), zoom: 12), // This is the camera position for the Google Map widget.
+  //     ),
+  //   );
 
-    controller.animateCamera(
-      // This animates the camera for the Google Map widget.
-      CameraUpdate.newLatLngBounds(
-          // This is the new LatLng bounds for the Google Map widget.
-          LatLngBounds(
-            southwest: LatLng(
-                boundsSw['lat'],
-                boundsSw[
-                    'lng']), // This is the southwest for the Google Map widget.
-            northeast: LatLng(
-                boundsNe['lat'],
-                boundsNe[
-                    'lng']), // This is the northeast for the Google Map widget.
-          ),
-          25),
-    );
-    _setMarker(
-        LatLng(lat, lng)); // This sets the marker for the Google Map widget.
-  }
-
-  void setStateIfMounted(f) {
-    if (mounted) setState(f);
-  }
+  //   controller.animateCamera( // This animates the camera for the Google Map widget.
+  //     CameraUpdate.newLatLngBounds( // This is the new LatLng bounds for the Google Map widget.
+  //         LatLngBounds(
+  //           southwest: LatLng(boundsSw['lat'], boundsSw['lng']), // This is the southwest for the Google Map widget.
+  //           northeast: LatLng(boundsNe['lat'], boundsNe['lng']), // This is the northeast for the Google Map widget.
+  //         ),
+  //         25),
+  //   );
+  //   //_setMarker(LatLng(lat, lng)); // This sets the marker for the Google Map widget.
+  // }
 }
