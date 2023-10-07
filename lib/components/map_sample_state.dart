@@ -38,7 +38,6 @@ class MapSampleState extends State<MapSample> {
 
   List<List<dynamic>>? hotspots;
 
-  List<List<dynamic>>? hotspots;
 
   @override
   void initState() {
