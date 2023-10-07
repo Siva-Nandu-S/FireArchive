@@ -1,7 +1,7 @@
 // ignore_for_file: unnecessary_new
 
 import 'dart:async';
-import 'package:http/http.dart' as http;
+
 import 'package:csv/csv.dart';
 import 'package:fire_archive/main.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +16,6 @@ class MapSampleState extends State<MapSample> {
   final TextEditingController _locationController =
       TextEditingController(); // This is the controller for the location text field.
 
-
   //final Set<Marker> _markers = <Marker>{}; // This is the set of markers for the Google Map.
   final Set<Polygon> _polygons =
       <Polygon>{}; // This is the set of polygons for the Google Map.
@@ -29,35 +28,6 @@ class MapSampleState extends State<MapSample> {
   // ignore: unused_field
   final int _polylineIdCounter = 1; // This is the counter for the polyline IDs.
 
-  // get http => null; // This is the http getter for the hotspots API.
-
-  static const CameraPosition _kGooglePlex = CameraPosition(
-    // This is the camera position for the Google Map.
-    target: LatLng(20.5937,
-        78.9629), // This is the target for the camera position.
-    zoom: 4, // This is the zoom for the camera position.
-  );
-
-  setMarkers(locations) async {
-    // This is the function to set the markers for the hotspots on the Google Map.
-    print("From setMarkers Method");
-
-    var data = locations[0].join(',').toString();
-    var dataList = data.split('\n');
-
-    for (int i = 1; i < dataList.length; i++) {
-      // This is the for loop to set the markers for the hotspots.
-      var newData = dataList[i].split(',');
-      double latitude = double.parse(newData[1]);
-      double longitude = double.parse(newData[2]);
-      print('${latitude}  +  ${longitude}');
-      _setMarker(
-          LatLng(latitude, longitude)); // This sets the marker for the hotspot.
-      Future.delayed(const Duration(seconds: 1), () {
-        // This is the future function to set the marker for the hotspot.
-        print("From Future Function");
-      });
-    }
   // ignore: prefer_typing_uninitialized_variables
   List<List<dynamic>>?
       locations; // This is the list of locations for the hotspots.
@@ -120,51 +90,15 @@ class MapSampleState extends State<MapSample> {
 
   // country_id,latitude,longitude,bright_ti4,scan,track,acq_date,acq_time,satellite,instrument,confidence,version,bright_ti5,frp,daynight
 
-  List<List<dynamic>>? hotspots;
-
   @override
-  void initState(){
+  void initState() {
     // This is the function to initialize the state of the Google Map widget.
-    super
-        .initState(); // This initializes the state of the Google Map widget with the super class.
-
-    var client = new http.Client();
-    client
-        .get(Uri.parse(
-            'https://firms.modaps.eosdis.nasa.gov/api/country/csv/ecc82b64df96a0490420a20ea4546b65/VIIRS_SNPP_NRT/IND/1'))
-        .then((response) async {
-      String data = response.body;
-      List<List<dynamic>> res = const CsvToListConverter().convert(data); // This converts the CSV data to a list of lists.
-      print("From Main Function");
-      hotspots = res;
-
-      Future.delayed(const Duration(seconds: 5), () {
-        print("From Future Function");
-        setMarkers(hotspots!);
-      });
-    });
-
-
+    super.initState();
+     // This initializes the state of the Google Map widget with the super class.
+    // getHotspots(); // This gets the hotspots for the Google Map widget to display on the Google Map.
     // _setMarker(const LatLng(37.42796133580664, -102.085749655962));
   }
 
-  Future<void> _setMarker(LatLng point) async {
-    // This is the function to set the marker for the hotspots on the Google Map widget.
-    
-    setState(() {
-      // This sets the state of the Google Map widget.
-      print("From _setMarker Method");
-      _markers.add(
-        // This adds the marker for the hotspots to the Google Map widget.
-        Marker(
-          markerId: const MarkerId(
-              'marker'), // This is the ID for the marker for the hotspots.
-          position:
-              point, // This is the position for the marker for the hotspots.
-        ),
-      );
-    });
-  }
 
   void _setPolygon() {
     // This is the function to set the polygon for the hotspots on the Google Map widget.
