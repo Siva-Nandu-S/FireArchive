@@ -8,10 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 
-
 class MapSampleState extends State<MapSample> {
-
-
 
   final Completer<GoogleMapController> _controller =
       Completer(); // Controller for the Google Map.
@@ -38,6 +35,8 @@ class MapSampleState extends State<MapSample> {
   late String searchedLocation;
   
   // Searched location for the Google Map.
+
+  List<List<dynamic>>? hotspots;
 
   List<List<dynamic>>? hotspots;
 
