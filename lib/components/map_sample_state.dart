@@ -1,285 +1,128 @@
-// ignore_for_file: unnecessary_new
-
 import 'dart:async';
-
+import 'package:http/http.dart' as http;
 import 'package:csv/csv.dart';
 import 'package:fire_archive/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:label_marker/label_marker.dart';
+
+
 
 class MapSampleState extends State<MapSample> {
+
+
+
   final Completer<GoogleMapController> _controller =
-      Completer(); // This is the controller for the Google Map.
+      Completer(); // Controller for the Google Map.
   final TextEditingController _locationController =
-      TextEditingController(); // This is the controller for the location text field.
+      TextEditingController(); // Controller for the location text field.
+  List<List<dynamic>>? locations; // List of hotspot locations.
 
-  //final Set<Marker> _markers = <Marker>{}; // This is the set of markers for the Google Map.
-  final Set<Polygon> _polygons =
-      <Polygon>{}; // This is the set of polygons for the Google Map.
-  final Set<Polyline> _polylines =
-      <Polyline>{}; // This is the set of polylines for the Google Map.
-  List<LatLng> polygonLatLngs =
-      <LatLng>[]; // This is the list of LatLngs for the polygons.
-
-  int _polygonIdCounter = 1; // This is the counter for the polygon IDs.
-  // ignore: unused_field
-  final int _polylineIdCounter = 1; // This is the counter for the polyline IDs.
-
-  // ignore: prefer_typing_uninitialized_variables
-  List<List<dynamic>>?
-      locations; // This is the list of locations for the hotspots.
-
-  get http => null; // This is the http getter for the hotspots API.
-
-  getHotspots() async {
-    // This is the function to get the hotspots.
-    var url = Uri.parse(
-        'https://firms.modaps.eosdis.nasa.gov/api/area/csv/ecc82b64df96a0490420a20ea4546b65/VIIRS_SNPP_NRT/world/1'); // This is the URL for the hotspots API.
-    // make http get request
-    var response = await http.get(url);
-    // check the status code for the result
-    if (response.statusCode == 200) {
-      locations = const CsvToListConverter()
-          .convert(response.body); // This converts the CSV to a list.
-      print(locations);
-    } else {
-      print('Request failed with status: ${response.statusCode}.');
-    }
-  }
-
+  // Constants
   static const CameraPosition _kGooglePlex = CameraPosition(
-    // This is the camera position for the Google Map.
-    target: LatLng(20.42796133580664,
-        80.885749655962), // This is the target for the camera position.
-    zoom: 1, // This is the zoom for the camera position.
+    target: LatLng(20.42796133580664, 80.885749655962),
+    zoom: 1,
   );
 
-  final List<Marker> markers = <Marker>[
+  List<Marker> markers = <Marker>[
     const Marker(
-        markerId: MarkerId('1'),
-        position: LatLng(20.42796133580664, 75.885749655962),
-        infoWindow: InfoWindow(
-          title: 'Some Position',
-          
-        )),
+      markerId: MarkerId('1'),
+      position: LatLng(20.42796133580664, 75.885749655962),
+      infoWindow: InfoWindow(
+        title: 'Some Position',
+      ),
+    ),
   ];
 
+  late String searchedLocation;
+  
+  // Searched location for the Google Map.
+
+  List<List<dynamic>>? hotspots;
+
+  @override
+  void initState() {
+    super.initState();
+
+    var client = http.Client();
+    client
+        .get(Uri.parse(
+            'https://firms.modaps.eosdis.nasa.gov/api/country/csv/ecc82b64df96a0490420a20ea4546b65/VIIRS_SNPP_NRT/IND/1'))
+        .then((response) async {
+      String data = response.body;
+      List<List<dynamic>> res = const CsvToListConverter().convert(data);
+      print("From Main Function");
+      hotspots = res;
+
+      setMarkers(hotspots!);
+    });
+
+    // _setMarker(LatLng(37.42796133580664, -122.085749655962));
+  }
+
+
+  List<Marker> spots = [];
+
+  void setMarkers(locations) async {
+    print("From setMarkers Method");
+
+    var data = locations[0].join(',').toString();
+    var dataList = data.split('\n');
+
+    for (int i = 1; i < dataList.length; i++) {
+      var newData = dataList[i].split(',');
+      double latitude = double.parse(newData[1]);
+      double longitude = double.parse(newData[2]);
+
+      spots += <Marker>[
+        Marker(
+            markerId: MarkerId(i.toString()),
+            position: LatLng(latitude, longitude),
+            infoWindow: const InfoWindow(
+              title: '',
+            )),
+      ];
+    }
+    setState(() {
+      markers.addAll(spots);
+    });
+  }
+
+
+
+  @override
+  void dispose() {
+    // Dispose of resources here.
+    _locationController.dispose();
+    super.dispose();
+  }
+
   Future<Position> getUserCurrentLocation() async {
-    await Geolocator.requestPermission()
-        .then((value) {})
-        .onError((error, stackTrace) async {
+    await Geolocator.requestPermission().then((value) {}).onError((error, stackTrace) async {
       await Geolocator.requestPermission();
-      print("ERROR" + error.toString());
+      print("ERROR: $error");
     });
     return await Geolocator.getCurrentPosition();
   }
 
-  // setMarkers() async { // This is the function to set the markers for the hotspots on the Google Map.
-  //   while (locations == null) { // This is the while loop to wait for the locations to be loaded.
-  //     await Future.delayed(const Duration(seconds: 1)); // This is the delay for the while loop.
-  //   }
-
-  //   for (var i = 1; i < locations!.length; i++) { // This is the for loop to set the markers for the hotspots.
-  //     _setMarker(LatLng(
-  //         double.parse(locations![i][0]), double.parse(locations![i][1]))); // This sets the marker for the hotspot.
-  //   }
-  // }
-
-  // country_id,latitude,longitude,bright_ti4,scan,track,acq_date,acq_time,satellite,instrument,confidence,version,bright_ti5,frp,daynight
-
-  @override
-  void initState() {
-    // This is the function to initialize the state of the Google Map widget.
-    super.initState();
-     // This initializes the state of the Google Map widget with the super class.
-    // getHotspots(); // This gets the hotspots for the Google Map widget to display on the Google Map.
-    // _setMarker(const LatLng(37.42796133580664, -102.085749655962));
-  }
-
-
-  void _setPolygon() {
-    // This is the function to set the polygon for the hotspots on the Google Map widget.
-    final String polygonIdVal =
-        'polygon_$_polygonIdCounter'; // This is the ID for the polygon for the hotspots.
-    _polygonIdCounter++; // This increments the counter for the polygon IDs for the hotspots.
-
-    _polygons.add(
-      // This adds the polygon for the hotspots to the Google Map widget to display on the Google Map.
-      Polygon(
-        // This is the polygon for the hotspots.
-        polygonId: PolygonId(
-            polygonIdVal), // This is the ID for the polygon for the hotspots.
-        points:
-            polygonLatLngs, // This is the list of LatLngs for the polygon for the hotspots.
-        strokeWidth:
-            2, // This is the width of the stroke for the polygon for the hotspots.
-        fillColor: Colors
-            .transparent, // This is the color of the fill for the polygon for the hotspots to be transparent.
-      ),
-    );
-  }
-
-  late String
-      searchedLocation; // This is the searched location for the Google Map widget to display on the Google Map.
-
   @override
   Widget build(BuildContext context) {
-    // This is the function to build the Google Map widget.
-    return new Scaffold(
-      // This is the scaffold for the Google Map widget.
-      appBar:
-          myappbar(), // This is the app bar for the Google Map widget to display on the Google Map.
-      backgroundColor: Colors
-          .white, // This is the background color for the Google Map widget to display on the Google Map.
-      body: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _locationController,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.all(15),
-                        hintText: 'Search Location',
-                        hintStyle: const TextStyle(
-                          color: Color(0xffDDDADA),
-                          fontSize: 15,
-                        ),
-                        prefixIcon: Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: SvgPicture.asset(
-                            'assets/icons/loc-1.svg', // This is the icon for the location text field.
-                            colorFilter: const ColorFilter.mode(
-                                Color.fromARGB(255, 109, 107, 106),
-                                BlendMode.srcIn),
-                          ),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                      onChanged: (value) {
-                        searchedLocation =
-                            value; // This sets the searched location for the Google Map widget to display on the Google Map.
-                      },
-                    ),
-                    // TextFormField(
-                    //   controller: _destinationController,
-                    //   decoration: const InputDecoration(hintText: ' Destination'),
-                    //   onChanged: (value) {
-                    //     print(value);
-                    //   },
-                    // ),
-                  ],
-                ),
-              ),
-              IconButton(
-                onPressed: () async {
-                  // This is the function to search for the location on the Google Map widget.
-                  // var directions = await LocationService().getDirections(
-                  //   _originController.text,
-                  //   _destinationController.text,
-                  // );
-                  // _goToPlace(
-                  //   directions['start_location']['lat'],
-                  //   directions['start_location']['lng'],
-                  //   directions['bounds_ne'],
-                  //   directions['bounds_sw'],
-                  // );
-
-                  // _setPolyline(directions['polyline_decoded']);
-                },
-                icon: const Icon(
-                    Icons.search), // This is the icon for the search button.
-              ),
-            ],
-          ),
-          Expanded(
-            child: GoogleMap(
-              // This is the Google Map widget to display on the Google Map.
-              mapType: MapType
-                  .normal, // This is the map type for the Google Map widget to display on the Google Map.
-              markers: Set<Marker>.of(
-                  markers), // This is the set of markers for the Google Map widget to display on the Google Map.
-              polygons:
-                  _polygons, // This is the set of polygons for the Google Map widget to display on the Google Map.
-              polylines:
-                  _polylines, // This is the set of polylines for the Google Map widget to display on the Google Map.
-              initialCameraPosition:
-                  _kGooglePlex, // This is the initial camera position for the Google Map widget to display on the Google Map.
-              onMapCreated: (GoogleMapController controller) {
-                // This is the function to create the Google Map widget to display on the Google Map.
-                _controller.complete(
-                    controller); // This completes the controller for the Google Map widget to display on the Google Map.
-              },
-              onTap: (point) {
-                // This is the function to set the polygon for the hotspots on the Google Map widget.
-                setState(() {
-                  // This sets the state of the Google Map widget.
-                  polygonLatLngs.add(
-                      point); // This adds the point for the polygon for the hotspots to the Google Map widget.
-                  _setPolygon(); // This sets the polygon for the hotspots on the Google Map widget.
-                });
-              },
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: Padding(
-          padding: const EdgeInsets.only(
-              bottom: 50.0), // Adjust the padding as needed
-          child: FloatingActionButton(
-            onPressed: () async {
-              getUserCurrentLocation().then((value) async {
-                //print(value.latitude.toString() +" "+value.longitude.toString());
-
-                // marker added for current users location
-                markers.add(Marker(
-                  markerId: const MarkerId("2"),
-                  position: LatLng(value.latitude, value.longitude),
-                  infoWindow: const InfoWindow(
-                    title: 'My Current Location',
-                  ),
-                  icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure)
-                  
-                ));
-
-                // specified current users location
-                CameraPosition cameraPosition = new CameraPosition(
-                  target: LatLng(value.latitude, value.longitude),
-                  zoom: 14,
-                );
-
-                final GoogleMapController controller = await _controller.future;
-                controller.animateCamera(
-                    CameraUpdate.newCameraPosition(cameraPosition));
-                setState(() {});
-              });
-            },
-            child: const Icon(Icons.local_activity),
-          )
-    ),
-
-          floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+    return Scaffold(
+      appBar: buildAppBar(),
+      backgroundColor: Colors.white,
+      body: buildBody(),
+      floatingActionButton: buildFloatingActionButton(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
   }
-  
 
-  AppBar myappbar() {
-    // This is the app bar for the Google Map widget to display on the Google Map widget.
+  AppBar buildAppBar() {
     return AppBar(
-      // This is the app bar for the Google Map widget to display on the Google Map widget.
-      title: const Text('FireArchive🔥',
-          style: TextStyle(
-              color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
+      title: const Text(
+        'FireArchive🔥',
+        style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+      ),
       backgroundColor: Colors.white,
       elevation: 0.0,
       centerTitle: true,
@@ -289,9 +132,11 @@ class MapSampleState extends State<MapSample> {
           margin: const EdgeInsets.all(10),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-              color: Colors.white, borderRadius: BorderRadius.circular(10)),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+          ),
           child: SvgPicture.asset(
-            'assets/icons/menu-1.svg', // This is the icon for the menu button.
+            'assets/icons/menu-1.svg',
             height: 40,
             width: 40,
           ),
@@ -299,16 +144,17 @@ class MapSampleState extends State<MapSample> {
       ),
       actions: [
         GestureDetector(
-          // This is the gesture detector for the admin button on the Google Map widget.
           onTap: () {},
           child: Container(
             margin: const EdgeInsets.all(10),
             alignment: Alignment.center,
             width: 37,
             decoration: BoxDecoration(
-                color: Colors.white, borderRadius: BorderRadius.circular(10)),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
             child: SvgPicture.asset(
-              'assets/icons/admin-1.svg', // This is the icon for the admin button.
+              'assets/icons/admin-1.svg',
               height: 40,
               width: 40,
             ),
@@ -318,31 +164,102 @@ class MapSampleState extends State<MapSample> {
     );
   }
 
-  // Future<void> _goToPlace( // This is the function to go to the place on the Google Map widget.
-  //   // Map<String, dynamic> place,
-  //   double lat, // This is the latitude for the Google Map widget.
-  //   double lng, // This is the function to go to the place on the Google Map widget.
-  //   Map<String, dynamic> boundsNe,
-  //   Map<String, dynamic> boundsSw,
-  // ) async {
-  //   // final double lat = place['geometry']['location']['lat'];
-  //   // final double lng = place['geometry']['location']['lng'];
+  Widget buildBody() {
+    return Column(
+      children: [
+        buildSearchRow(),
+        Expanded(
+          child: GoogleMap(
+            mapType: MapType.normal,
+            markers: Set<Marker>.of(markers),
+            initialCameraPosition: _kGooglePlex,
+            onMapCreated: (GoogleMapController controller) {
+              _controller.complete(controller);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+  
+  Widget buildSearchRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            children: [
+              TextFormField(
+                controller: _locationController,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.all(15),
+                  hintText: 'Search Location',
+                  hintStyle: const TextStyle(
+                    color: Color(0xffDDDADA),
+                    fontSize: 15,
+                  ),
+                  prefixIcon: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: SvgPicture.asset(
+                      'assets/icons/loc-1.svg',
+                      colorFilter: const ColorFilter.mode(
+                        Color.fromARGB(255, 109, 107, 106),
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                onChanged: (value) {
+                  searchedLocation = value;
+                },
+              ),
+            ],
+          ),
+        ),
+        IconButton(
+          onPressed: () async {
+            // Add your search functionality here.
+          },
+          icon: const Icon(Icons.search),
+        ),
+      ],
+    );
+  }
 
-  //   final GoogleMapController controller = await _controller.future; // This is the controller for the Google Map widget.
-  //   controller.animateCamera( // This animates the camera for the Google Map widget.
-  //     CameraUpdate.newCameraPosition( // This is the new camera position for the Google Map widget.
-  //       CameraPosition(target: LatLng(lat, lng), zoom: 12), // This is the camera position for the Google Map widget.
-  //     ),
-  //   );
+  Widget buildFloatingActionButton() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 50.0),
+      child: FloatingActionButton(
+        onPressed: () async {
+          getUserCurrentLocation().then((value) async {
+            markers.add(
+              Marker(
+                markerId: const MarkerId("2"),
+                position: LatLng(value.latitude, value.longitude),
+                infoWindow: const InfoWindow(
+                  title: 'My Current Location',
+                ),
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+              ),
+            );
 
-  //   controller.animateCamera( // This animates the camera for the Google Map widget.
-  //     CameraUpdate.newLatLngBounds( // This is the new LatLng bounds for the Google Map widget.
-  //         LatLngBounds(
-  //           southwest: LatLng(boundsSw['lat'], boundsSw['lng']), // This is the southwest for the Google Map widget.
-  //           northeast: LatLng(boundsNe['lat'], boundsNe['lng']), // This is the northeast for the Google Map widget.
-  //         ),
-  //         25),
-  //   );
-  //   //_setMarker(LatLng(lat, lng)); // This sets the marker for the Google Map widget.
-  // }
+            CameraPosition cameraPosition = CameraPosition(
+              target: LatLng(value.latitude, value.longitude),
+              zoom: 14,
+            );
+
+            final GoogleMapController controller = await _controller.future;
+            controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+            setState(() {});
+          });
+        },
+        child: const Icon(Icons.local_activity),
+      ),
+    );
+  }
 }

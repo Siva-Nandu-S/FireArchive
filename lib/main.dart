@@ -1,7 +1,6 @@
 // ignore_for_file: unnecessary_new, unused_import
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
-import 'package:fire_archive/components/location_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
