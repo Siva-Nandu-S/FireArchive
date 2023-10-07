@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:fire_archive/components/NavBar.dart';
 import 'package:http/http.dart' as http;
 import 'package:csv/csv.dart';
 import 'package:fire_archive/main.dart';
@@ -9,7 +10,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 
 class MapSampleState extends State<MapSample> {
-
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final Completer<GoogleMapController> _controller =
       Completer(); // Controller for the Google Map.
   final TextEditingController _locationController =
@@ -38,7 +39,6 @@ class MapSampleState extends State<MapSample> {
 
   List<List<dynamic>>? hotspots;
 
-  List<List<dynamic>>? hotspots;
 
   @override
   void initState() {
@@ -108,7 +108,9 @@ class MapSampleState extends State<MapSample> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: buildAppBar(),
+      key: _scaffoldKey,
+      drawer: NavBar(),
+      appBar: myAppBar(),
       backgroundColor: Colors.white,
       body: buildBody(),
       floatingActionButton: buildFloatingActionButton(),
@@ -116,34 +118,40 @@ class MapSampleState extends State<MapSample> {
     );
   }
 
-  AppBar buildAppBar() {
+  AppBar myAppBar() {
     return AppBar(
       title: const Text(
-        'FireArchive🔥',
-        style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+        'FireArchive',
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 25,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       backgroundColor: Colors.white,
       elevation: 0.0,
       centerTitle: true,
       leading: GestureDetector(
-        onTap: () {},
+        onTap: () {
+          // Handle menu icon tap
+          _scaffoldKey.currentState?.openDrawer();
+        },
+        // Handle menu
         child: Container(
           margin: const EdgeInsets.all(10),
           alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-          ),
           child: SvgPicture.asset(
             'assets/icons/menu-1.svg',
-            height: 40,
-            width: 40,
+            height: 35,
+            width: 35,
           ),
         ),
       ),
       actions: [
         GestureDetector(
-          onTap: () {},
+          onTap: () {
+            // Handle admin icon tap
+          },
           child: Container(
             margin: const EdgeInsets.all(10),
             alignment: Alignment.center,
@@ -152,16 +160,16 @@ class MapSampleState extends State<MapSample> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: SvgPicture.asset(
-              'assets/icons/admin-1.svg',
-              height: 40,
-              width: 40,
+            child: const Icon(
+              Icons.admin_panel_settings,
+              color: Colors.black,
             ),
           ),
         ),
       ],
     );
   }
+
 
   Widget buildBody() {
     return Column(
