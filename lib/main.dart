@@ -247,6 +247,7 @@ class MapSampleState extends State<MapSample> {
           // Handle menu icon tap
           _scaffoldKey.currentState?.openDrawer();
         },
+        // Handle menu
         child: Container(
           margin: const EdgeInsets.all(10),
           alignment: Alignment.center,
