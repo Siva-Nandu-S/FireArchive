@@ -12,13 +12,12 @@ import 'package:fire_archive/NavBar.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:fire_archive/components/map_sample_state.dart';
 import 'package:label_marker/label_marker.dart';
+
 void main() async {
   runApp(const MyApp());
   // MapSampleState().getHotspots();
-();
-  
+  ();
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -40,7 +39,6 @@ class MapSample extends StatefulWidget {
       {super.key}); // This is the constructor for the MapSample class.
 
   @override
-<<<<<<< HEAD
   State<MapSample> createState() => MapSampleState();
 }
 
@@ -319,8 +317,4 @@ FutureOr<void> _goToPlace(
   //   );
   //   _setMarker(LatLng(lat, lng));
   // }
-=======
-  State<MapSample> createState() =>
-      MapSampleState(); // This is the state of the MapSample class.
->>>>>>> 64f95d0d8209d7df19fd6769708679364c3bf91a
 }
