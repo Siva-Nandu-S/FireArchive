@@ -9,6 +9,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:csv/csv.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fire_archive/NavBar.dart';
 
 void main() => runApp(const MyApp());
 
@@ -19,7 +20,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(fontFamily: 'Poppins'), 
+      theme: ThemeData(fontFamily: 'Poppins'),
       title: 'Fire Archive',
       home: const MapSample(),
     );
@@ -34,6 +35,7 @@ class MapSample extends StatefulWidget {
 }
 
 class MapSampleState extends State<MapSample> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final Completer<GoogleMapController> _controller = Completer();
   final TextEditingController _locationController = TextEditingController();
 
@@ -74,12 +76,16 @@ class MapSampleState extends State<MapSample> {
     super.initState();
     getHotspots();
     // ignore: unused_local_variable
-    var timer = Timer(const Duration(seconds: 15), () => {
-      for (var i = 0; i < locations.length; i++) {
-        _setMarker(LatLng(locations[i][1] as double, locations[i][2] as double))
-      }
-    });
-    
+    var timer = Timer(
+        const Duration(seconds: 15),
+        () => {
+              for (var i = 0; i < locations.length; i++)
+                {
+                  _setMarker(LatLng(
+                      locations[i][1] as double, locations[i][2] as double))
+                }
+            });
+
     // _setMarker(const LatLng(37.42796133580664, -122.085749655962));
   }
 
@@ -131,7 +137,9 @@ class MapSampleState extends State<MapSample> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      appBar: myappbar(),
+      key: _scaffoldKey,
+      drawer: NavBar(),
+      appBar: myAppBar(),
       backgroundColor: Colors.white,
       body: Column(
         children: [
@@ -142,28 +150,29 @@ class MapSampleState extends State<MapSample> {
                   children: [
                     TextFormField(
                       controller: _locationController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         filled: true,
                         fillColor: Colors.white,
                         contentPadding: const EdgeInsets.all(15),
                         hintText: 'Search Location',
                         hintStyle: const TextStyle(
-                        color: Color(0xffDDDADA),
-                        fontSize: 15,
+                          color: Color(0xffDDDADA),
+                          fontSize: 15,
                         ),
                         prefixIcon: Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: SvgPicture.asset(
-                          'assets/icons/loc-1.svg',
-                          colorFilter: const ColorFilter.mode(Color.fromARGB(255, 109, 107, 106), BlendMode.srcIn),
+                          padding: const EdgeInsets.all(8),
+                          child: SvgPicture.asset(
+                            'assets/icons/loc-1.svg',
+                            colorFilter: const ColorFilter.mode(
+                                Color.fromARGB(255, 109, 107, 106),
+                                BlendMode.srcIn),
                           ),
                         ),
                         border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
                         ),
                       ),
-
                       onChanged: (value) {
                         searchedLocation = value;
                       },
@@ -180,20 +189,20 @@ class MapSampleState extends State<MapSample> {
               ),
               IconButton(
                 onPressed: () async {
-                  var directions = await LocationService().getDirections(
-                    _originController.text,
-                    _destinationController.text,
-                  );
-                  _goToPlace(
-                    directions['start_location']['lat'],
-                    directions['start_location']['lng'],
-                    directions['bounds_ne'],
-                    directions['bounds_sw'],
-                  );
+                  // var directions = await LocationService().getDirections(
+                  //   _originController.text,
+                  //   _destinationController.text,
+                  // );
+                  // _goToPlace(
+                  //   directions['start_location']['lat'],
+                  //   directions['start_location']['lng'],
+                  //   directions['bounds_ne'],
+                  //   directions['bounds_sw'],
+                  // );
 
-                  _setPolyline(directions['polyline_decoded']);
+                  // _setPolyline(directions['polyline_decoded']);
                 },
-              icon: const Icon(Icons.search),
+                icon: const Icon(Icons.search),
               ),
             ],
           ),
@@ -220,87 +229,83 @@ class MapSampleState extends State<MapSample> {
     );
   }
 
-  AppBar myappbar() {
+  AppBar myAppBar() {
     return AppBar(
-      title: 
-        const Text('FireArchive🔥', 
+      title: Text(
+        'FireArchive🔥',
         style: TextStyle(
           color: Colors.black,
-          fontSize: 20,
-          fontWeight: FontWeight.bold
-        )),
+          fontSize: 25,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       backgroundColor: Colors.white,
       elevation: 0.0,
       centerTitle: true,
       leading: GestureDetector(
-        onTap:(){
-
+        onTap: () {
+          // Handle menu icon tap
+          _scaffoldKey.currentState?.openDrawer();
         },
         child: Container(
           margin: const EdgeInsets.all(10),
           alignment: Alignment.center,
-          decoration:BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10)
-
-          ),
           child: SvgPicture.asset(
             'assets/icons/menu-1.svg',
-            height: 40,
-            width: 40,
+            height: 35,
+            width: 35,
           ),
         ),
       ),
-
       actions: [
         GestureDetector(
-          onTap:(){
-
+          onTap: () {
+            // Handle admin icon tap
           },
           child: Container(
             margin: const EdgeInsets.all(10),
             alignment: Alignment.center,
             width: 37,
-            decoration:BoxDecoration(
+            decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(10)
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: SvgPicture.asset(
-              'assets/icons/admin-1.svg',
-              height: 40,
-              width: 40,
+            child: Icon(
+              Icons.admin_panel_settings,
+              color: Colors.black,
             ),
           ),
-        ),  
+        ),
       ],
     );
   }
+}
 
-  Future<void> _goToPlace(
-    // Map<String, dynamic> place,
-    double lat,
-    double lng,
-    Map<String, dynamic> boundsNe,
-    Map<String, dynamic> boundsSw,
-  ) async {
-    // final double lat = place['geometry']['location']['lat'];
-    // final double lng = place['geometry']['location']['lng'];
+FutureOr<void> _goToPlace(
+  // Map<String, dynamic> place,
+  double lat,
+  double lng,
+  Map<String, dynamic> boundsNe,
+  Map<String, dynamic> boundsSw,
+) async {
+  // final double lat = place['geometry']['location']['lat'];
+  // final double lng = place['geometry']['location']['lng'];
 
-    final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(target: LatLng(lat, lng), zoom: 12),
-      ),
-    );
+  // final GoogleMapController controller = await _controller.future;
+  // controller.animateCamera(
+  //   CameraUpdate.newCameraPosition(
+  //     CameraPosition(target: LatLng(lat, lng), zoom: 12),
+  //   ),
+  // );
 
-    controller.animateCamera(
-      CameraUpdate.newLatLngBounds(
-          LatLngBounds(
-            southwest: LatLng(boundsSw['lat'], boundsSw['lng']),
-            northeast: LatLng(boundsNe['lat'], boundsNe['lng']),
-          ),
-          25),
-    );
-    _setMarker(LatLng(lat, lng));
-  }
+  //   controller.animateCamera(
+  //     CameraUpdate.newLatLngBounds(
+  //         LatLngBounds(
+  //           southwest: LatLng(boundsSw['lat'], boundsSw['lng']),
+  //           northeast: LatLng(boundsNe['lat'], boundsNe['lng']),
+  //         ),
+  //         25),
+  //   );
+  //   _setMarker(LatLng(lat, lng));
+  // }
 }
