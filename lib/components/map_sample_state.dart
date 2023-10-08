@@ -1,51 +1,51 @@
-import 'dart:async'; // For using the Timer class.
-import 'dart:convert'; // For decoding JSON data.
-import 'package:fire_archive/components/NavBar.dart'; // For the navigation bar.
-import 'package:http/http.dart' as http; // For making HTTP requests.
-import 'package:csv/csv.dart'; // For parsing CSV data. 
-import 'package:fire_archive/main.dart';  // For the main function.
-import 'package:flutter/material.dart'; // For the Material design.
-import 'package:flutter_svg/svg.dart';  // For the SVG icons.
-import 'package:geolocator/geolocator.dart';  // For getting the user's current location.
-import 'package:google_maps_flutter/google_maps_flutter.dart';  // For the Google Maps.
-import "dart:math" show asin, cos, pi, pow, sin, sqrt;  // For the mathematical functions.
-import 'package:geocoding/geocoding.dart';  // For getting the location from the address.
+import 'dart:async';
+import 'dart:convert';
+import 'package:fire_archive/components/NavBar.dart';
+import 'package:http/http.dart' as http;
+import 'package:csv/csv.dart';
+import 'package:fire_archive/main.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import "dart:math" show asin, cos, pi, pow, sin, sqrt;
+import 'package:geocoding/geocoding.dart';
+import 'package:fire_archive/components/alert_button.dart';
 
+class AirQualityBar extends StatelessWidget {
+  final int aqi; // Air Quality Index value
+  final List<Color> gradientColors;
 
-class AirQualityBar extends StatelessWidget { // For the air quality bar widget on the map.
-  final int aqi; // Air Quality Index value for the location.
-  final List<Color> gradientColors; // Gradient colors for the bar.
+  AirQualityBar({required this.aqi}) : gradientColors = _getGradientColors(aqi);
 
-  AirQualityBar({required this.aqi}) : gradientColors = _getGradientColors(aqi); // Constructor for the AirQualityBar class.
-
-  static List<Color> _getGradientColors(int aqi) { 
+  static List<Color> _getGradientColors(int aqi) {
     // Define color ranges based on AQI levels
-    if (aqi >= 0 && aqi <= 1) { // If the AQI is between 0 and 50.
+    if (aqi >= 0 && aqi <= 1) {
       // Green: 0 to 50
-      return [Colors.green, Colors.green]; // Return the green color.
-    } else if (aqi <= 2) { // If the AQI is between 51 and 100.
+      return [Colors.green, Colors.green];
+    } else if (aqi <= 2) {
       // Yellow: 51 to 100
       return [Colors.yellow, Colors.yellow];
-    } else if (aqi <= 3) { // If the AQI is between 101 and 150.
+    } else if (aqi <= 3) {
       // Orange: 101 to 150
       return [Colors.orange, Colors.orange];
-    } else if (aqi <= 4) { // If the AQI is between 151 and 200.
-      // Red: 151 to 200 
+    } else if (aqi <= 4) {
+      // Red: 151 to 200
       return [Colors.red, Colors.red];
-    }else { // If the AQI is greater than 200.
+    }else {
       // Maroon: 301 and higher
       return [const Color.fromARGB(255, 128, 0, 0), Color.fromARGB(255, 128, 0, 0),];
     }
   }
 
   @override
-  Widget build(BuildContext context) { // Build the air quality bar.
+  Widget build(BuildContext context) {
     return Container(
       height: 20.0, // Adjust the height of the bar as needed
-      decoration: BoxDecoration( // Decorate the bar.
-        gradient: LinearGradient( // Use a linear gradient for the bar.
-          colors: gradientColors, // Use the gradient colors defined above.
-          begin: Alignment.centerLeft,  // Align the gradient to the left.
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: gradientColors,
+          begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
         borderRadius: BorderRadius.circular(8.0),
@@ -53,6 +53,8 @@ class AirQualityBar extends StatelessWidget { // For the air quality bar widget 
     );
   }
 }
+
+
 
 
 
@@ -104,6 +106,7 @@ class MapSampleState extends State<MapSample> { // For the state of the MapSampl
 
       setMarkers(hotspots!);  // Set the markers on the Google Map.
     });
+    
   }
 
   List<Marker> spots = [];  // List of markers for the Google Map.
@@ -114,11 +117,11 @@ class MapSampleState extends State<MapSample> { // For the state of the MapSampl
     var dataList = data.split('\n');  // Split the data by new line.
 
     for (int i = 1; i < dataList.length; i++) {
-      var newData = dataList[i].split(','); // Split the data by comma.
-      double latitude = double.parse(newData[1]); // Get the latitude.
-      double longitude = double.parse(newData[2]);  // Get the longitude.
-      double brightness = double.parse(newData[3]); // Get the brightness.
-      String place = '$latitude,$longitude';
+
+      var newData = dataList[i].split(',');
+      double latitude = double.parse(newData[1]);
+      double longitude = double.parse(newData[2]);
+      double brightness = double.parse(newData[3]);
 
       if (brightness > 355) { // If the brightness is greater than 355.
         spots += <Marker>[
@@ -246,6 +249,7 @@ class MapSampleState extends State<MapSample> { // For the state of the MapSampl
     );
   },
 );
+
   }
 
   double degreesToRadians(double degrees) { // Convert degrees to radians.
@@ -324,6 +328,7 @@ class MapSampleState extends State<MapSample> { // For the state of the MapSampl
         final GoogleMapController controller = await _controller.future; // Get the Google Map controller.
         controller
             .animateCamera(CameraUpdate.newCameraPosition(cameraPosition)); // Animate the camera to the searched location.
+
         setState(() {});
       } else {
         // Handle the case where no location data is available
@@ -347,106 +352,42 @@ class MapSampleState extends State<MapSample> { // For the state of the MapSampl
     );
   }
 
-  AppBar myAppBar() {
-    return AppBar(
-      title: const Text(
-        'FireArchive🧑‍🚒', 
-        style: TextStyle(
-          color: Colors.black,
-          fontSize: 25,
-          fontWeight: FontWeight.bold,
-        ),// Text for the app bar title.
-      ),
-      backgroundColor: Colors.white,
-      elevation: 0.0,
-      centerTitle: true,
-      leading: GestureDetector(
-        onTap: () {
-          // Handle menu icon tap
-          _scaffoldKey.currentState?.openDrawer();
-        },
-        // Handle menu
-        child: Container(
-          margin: const EdgeInsets.all(10),
-          alignment: Alignment.center,
-          child: SvgPicture.asset(
-            'assets/icons/menu-1.svg',
-            height: 35,
-            width: 35,
-          ),
-        ),
-      ),
-      actions: [
-        GestureDetector(
-          onTap: () {
-            showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-  title: Text(
-    'Emergency Alert', // Use the alert dialog for the emergency alert.
-    style: TextStyle(
-      color: Colors.red, // Use a prominent color for the title
-      fontWeight: FontWeight.bold, // Make the title bold
-    ),
-  ),
-  content: Column(
-    mainAxisSize: MainAxisSize.min,
-    children: <Widget>[
-      Text(
-        'Danger Zone Alert',
-        style: TextStyle(
-          fontSize: 18.0, // Increase the font size for emphasis
-          fontWeight: FontWeight.bold, // Make the text bold
-        ),
-      ),
-      SizedBox(height: 16.0),
-      Text(
-        'You are currently within a 10KM radius of a severe hotspot. Please take immediate precautions and follow local guidelines.',
-        style: TextStyle(
-          color: Colors.black87, // Use a darker text color for content
-          fontSize: 16.0, // Adjust the font size for readability
-        ),
-      ),
-    ],
-  ),
-  actions: <Widget>[
-    ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        primary: Colors.red, // Use the same prominent color for the button
-      ),
-      onPressed: () {
-        Navigator.of(context).pop();
-      },
-      child: Text(
-        'OK',
-        style: TextStyle(
-          color: Colors.white, // Use white text color for better contrast
-        ),
-      ),
-    ),
-  ],
-);
 
-                });
-          },
-          child: Container(
-            margin: const EdgeInsets.all(2),
-            alignment: Alignment.center,
-            width: 37,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              Icons.admin_panel_settings,
-              color: _isDanger ? Colors.red : Colors.black, // Use red color if the user is in a danger zone.
-            ),
-          ),
+ AppBar myAppBar() {
+  return AppBar(
+    title: const Text(
+      'FireArchive🧑‍🚒',
+      style: TextStyle(
+        color: Colors.black,
+        fontSize: 25,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+    backgroundColor: Colors.white,
+    elevation: 0.0,
+    centerTitle: true,
+    leading: GestureDetector(
+      onTap: () {
+        // Handle menu icon tap
+        _scaffoldKey.currentState?.openDrawer();
+      },
+      // Handle menu
+      child: Container(
+        margin: const EdgeInsets.all(10),
+        alignment: Alignment.center,
+        child: SvgPicture.asset(
+          'assets/icons/menu-1.svg',
+          height: 35,
+          width: 35,
         ),
-      ],
-    );
-  }
+      ),
+    ),
+    actions: [
+      BlinkingSOSButton(isDanger: _isDanger,), // Use the BlinkingSOSButton widget here
+    ],
+  );
+}
+
 
   Widget buildBody() {
     return Column(
