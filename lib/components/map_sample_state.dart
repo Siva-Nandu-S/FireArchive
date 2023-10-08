@@ -55,9 +55,6 @@ class AirQualityBar extends StatelessWidget {
 }
 
 
-
-
-
 class MapSampleState extends State<MapSample> { // For the state of the MapSample class.
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // Key for the scaffold.
   final Completer<GoogleMapController> _controller =

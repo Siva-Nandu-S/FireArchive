@@ -45,15 +45,51 @@ class _BlinkingSOSButtonState extends State<BlinkingSOSButton> {
             context: context,
             builder: (context) {
               return AlertDialog(
-                title: const Text('SOS'),
-                content: const Text('You are in a danger zone'),
+                title: Text(
+                  'Emergency Alert',
+                  style: TextStyle(
+                    color: Colors.red, // Use a prominent color for the title
+                    fontWeight: FontWeight.bold, // Make the title bold
+                  ),
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      'Danger Zone Alert',
+                      style: TextStyle(
+                        fontSize: 18.0, // Increase the font size for emphasis
+                        fontWeight: FontWeight.bold, // Make the text bold
+                      ),
+                    ),
+                    SizedBox(height: 16.0),
+                    Text(
+                      'You are currently within a 10KM radius of a severe hotspot. Please take immediate precautions and follow local guidelines.',
+                      style: TextStyle(
+                        color: Colors
+                            .black87, // Use a darker text color for content
+                        fontSize: 16.0, // Adjust the font size for readability
+                      ),
+                    ),
+                  ],
+                ),
                 actions: <Widget>[
-                  TextButton(
-                    child: const Text('OK'),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      primary: Colors
+                          .red, // Use the same prominent color for the button
+                    ),
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                  )
+                    child: Text(
+                      'OK',
+                      style: TextStyle(
+                        color: Colors
+                            .white, // Use white text color for better contrast
+                      ),
+                    ),
+                  ),
                 ],
               );
             });
