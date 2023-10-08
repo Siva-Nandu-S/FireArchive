@@ -10,6 +10,49 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 
+class AirQualityBar extends StatelessWidget {
+  final int aqi; // Air Quality Index value
+  final List<Color> gradientColors;
+
+  AirQualityBar({required this.aqi}) : gradientColors = _getGradientColors(aqi);
+
+  static List<Color> _getGradientColors(int aqi) {
+    // Define color ranges based on AQI levels
+    if (aqi >= 0 && aqi <= 1) {
+      // Green: 0 to 50
+      return [Colors.green, Colors.green];
+    } else if (aqi <= 2) {
+      // Yellow: 51 to 100
+      return [Colors.yellow, Colors.yellow];
+    } else if (aqi <= 3) {
+      // Orange: 101 to 150
+      return [Colors.orange, Colors.orange];
+    } else if (aqi <= 4) {
+      // Red: 151 to 200
+      return [Colors.red, Colors.red];
+    }else {
+      // Maroon: 301 and higher
+      return [const Color.fromARGB(255, 128, 0, 0), Color.fromARGB(255, 128, 0, 0),];
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 20.0, // Adjust the height of the bar as needed
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: gradientColors,
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+    );
+  }
+}
+
+
 
 class MapSampleState extends State<MapSample> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -85,7 +128,7 @@ class MapSampleState extends State<MapSample> {
           icon:
               BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
           onTap: () {
-            _showMyDialog(latitude,longitude);
+            _showMyDialog(latitude, longitude);
           },
         ),
       ];
@@ -96,50 +139,73 @@ class MapSampleState extends State<MapSample> {
     });
   }
 
-  Future<void> _showMyDialog(latitude,longitude) async {
+  Future<void> _showMyDialog(latitude, longitude) async {
     var client = http.Client();
     // ignore: prefer_typing_uninitialized_variables
     var data;
-    await client.get(Uri.parse(
+    await client
+        .get(Uri.parse(
             'http://api.openweathermap.org/data/2.5/air_pollution?lat=${latitude}&lon=${longitude}&appid=7aec4f8d030b3228e06daddc0646ce4a'))
         .then((response) async {
-        data = json.decode(response.body);
-        }); 
-        data = data['list'][0]['components'];
-        print(data);
-              // ignore: use_build_context_synchronously
-              return showDialog<void>(
-                  context: context,
-                  barrierDismissible: false, // user must tap button!
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Details'),
-                      content: SingleChildScrollView(
-                        child: ListBody(
-                          children: <Widget>[
-                            const Text('Air Quality Index: '),
-                            Text('CO : ${data['co']}'),
-                            Text('NO : ${data['no']}'),
-                            Text('NO2 : ${data['no2']}'),
-                            Text('O3 : ${data['o3']}'),
-                            Text('SO2 : ${data['so2']}'),
-                            Text('PM2_5 : ${data['pm2_5']}'),
-                            Text('PM10 : ${data['pm10']}'),
-                            Text('NH3 : ${data['nh3']}'),
-                          ],
-                        ),
-                      ),
-                      actions: <Widget>[
-                        TextButton(
-                          child: const Text('Done'),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                      ],
-                    );
-                  });
-            }
+      data = json.decode(response.body);
+    });
+    var aqi = data['list'][0]['main']['aqi'];
+    data = data['list'][0]['components'];
+    print(data);
+    // ignore: use_build_context_synchronously
+    Widget _buildDetailRow(String label, String value) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      Text(label),
+      Text(value),
+    ],
+  );
+}
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: true, // user must tap button!
+      builder: (BuildContext context) {
+    return AlertDialog(
+      title: Text('Details', style: TextStyle(fontWeight: FontWeight.bold)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
+      content: Container(
+        height: 300,
+        width: 100,
+        child: Column(
+        children: <Widget>[
+          SizedBox(height: 10),
+          Text('Air Quality Index', style: TextStyle(fontWeight: FontWeight.bold)),
+          SizedBox(height: 5),
+          AirQualityBar(aqi: aqi),
+          SizedBox(height: 15),
+          _buildDetailRow('AQI', '$aqi'),
+          _buildDetailRow('CO', '${data['co']}'),
+          _buildDetailRow('NO', '${data['no']}'),
+          _buildDetailRow('NO2', '${data['no2']}'),
+          _buildDetailRow('O3', '${data['o3']}'),
+          _buildDetailRow('SO2', '${data['so2']}'),
+          _buildDetailRow('PM2.5', '${data['pm2_5']}'),
+          _buildDetailRow('PM10', '${data['pm10']}'),
+          _buildDetailRow('NH3', '${data['nh3']}'),
+        ],
+      ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          child: Text('Done', style: TextStyle(color: Colors.blue)),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
+    );
+  },
+);
+
+  }
 
   @override
   void dispose() {
@@ -158,46 +224,45 @@ class MapSampleState extends State<MapSample> {
     return await Geolocator.getCurrentPosition();
   }
 
+  void searchLocation(String searchedLocation) async {
+    try {
+      List<Location> locations = await locationFromAddress(searchedLocation);
 
- void searchLocation(String searchedLocation) async {
-  try {
-    List<Location> locations = await locationFromAddress(searchedLocation);
+      if (locations.isNotEmpty) {
+        Location firstLocation = locations.first;
+        double latitude = firstLocation.latitude;
+        double longitude = firstLocation.longitude;
 
-    if (locations.isNotEmpty) {
-      Location firstLocation = locations.first;
-      double latitude = firstLocation.latitude;
-      double longitude = firstLocation.longitude;
-
-
-      markers.add(
-        Marker(
-          markerId: const MarkerId("searchedLocation"),
-          position: LatLng(latitude, longitude),
-          infoWindow: InfoWindow(
-            title: searchedLocation,
+        markers.add(
+          Marker(
+            markerId: const MarkerId("searchedLocation"),
+            position: LatLng(latitude, longitude),
+            infoWindow: InfoWindow(
+              title: searchedLocation,
+            ),
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueViolet),
           ),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
-        ),
-      );
+        );
 
-      // Move the camera to the searched location
-      CameraPosition cameraPosition = CameraPosition(
-        target: LatLng(latitude, longitude),
-        zoom: 12,
-      );
+        // Move the camera to the searched location
+        CameraPosition cameraPosition = CameraPosition(
+          target: LatLng(latitude, longitude),
+          zoom: 12,
+        );
 
-      final GoogleMapController controller = await _controller.future;
-      controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
-      setState(() {});
-    } else {
-      // Handle the case where no location data is available
-      print('No location data available for: $searchedLocation');
+        final GoogleMapController controller = await _controller.future;
+        controller
+            .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+        setState(() {});
+      } else {
+        // Handle the case where no location data is available
+        print('No location data available for: $searchedLocation');
+      }
+    } catch (e) {
+      print('Error searching location: $e');
     }
-  } catch (e) {
-    print('Error searching location: $e');
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -333,38 +398,39 @@ class MapSampleState extends State<MapSample> {
   }
 
   Widget buildFloatingActionButton() {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 50.0),
-    child: Tooltip(
-      message: 'Current Location', // Tooltip text
-      child: FloatingActionButton(
-        onPressed: () async {
-          getUserCurrentLocation().then((value) async {
-            markers.add(
-              Marker(
-                markerId: const MarkerId("2"),
-                position: LatLng(value.latitude, value.longitude),
-                infoWindow: const InfoWindow(
-                  title: 'My Current Location',
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 50.0),
+      child: Tooltip(
+        message: 'Current Location', // Tooltip text
+        child: FloatingActionButton(
+          onPressed: () async {
+            getUserCurrentLocation().then((value) async {
+              markers.add(
+                Marker(
+                  markerId: const MarkerId("2"),
+                  position: LatLng(value.latitude, value.longitude),
+                  infoWindow: const InfoWindow(
+                    title: 'My Current Location',
+                  ),
+                  icon: BitmapDescriptor.defaultMarkerWithHue(
+                      BitmapDescriptor.hueAzure),
                 ),
-                icon: BitmapDescriptor.defaultMarkerWithHue(
-                    BitmapDescriptor.hueAzure),
-              ),
-            );
+              );
 
-            CameraPosition cameraPosition = CameraPosition(
-              target: LatLng(value.latitude, value.longitude),
-              zoom: 14,
-            );
+              CameraPosition cameraPosition = CameraPosition(
+                target: LatLng(value.latitude, value.longitude),
+                zoom: 14,
+              );
 
-            final GoogleMapController controller = await _controller.future;
-            controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
-            setState(() {});
-          });
-        },
-        child: const Icon(Icons.location_on), // Icon for current location
+              final GoogleMapController controller = await _controller.future;
+              controller.animateCamera(
+                  CameraUpdate.newCameraPosition(cameraPosition));
+              setState(() {});
+            });
+          },
+          child: const Icon(Icons.location_on), // Icon for current location
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
