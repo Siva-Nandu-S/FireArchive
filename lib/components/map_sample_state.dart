@@ -36,10 +36,10 @@ class MapSampleState extends State<MapSample> {
   ];
 
   late String searchedLocation;
+  var hotspots;
 
   // Searched location for the Google Map.
 
-  List<List<dynamic>>? hotspots;
 
   @override
   void initState() {
