@@ -408,54 +408,65 @@ class MapSampleState extends State<MapSample> {
   }
 
   Widget buildSearchRow() {
-    return Row(
+  return Container(
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.withOpacity(0.5),
+          spreadRadius: 1,
+          blurRadius: 4,
+          offset: Offset(0, 2),
+        ),
+      ],
+    ),
+    child: Row(
       children: [
         Expanded(
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _locationController,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.all(15),
-                  hintText: 'Search Location',
-                  hintStyle: const TextStyle(
-                    color: Color(0xffDDDADA),
-                    fontSize: 15,
-                  ),
-                  prefixIcon: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: SvgPicture.asset(
-                      'assets/icons/loc-1.svg',
-                      colorFilter: const ColorFilter.mode(
-                        Color.fromARGB(255, 109, 107, 106),
-                        BlendMode.srcIn,
-                      ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: TextFormField(
+              controller: _locationController,
+              decoration: InputDecoration(
+                hintText: 'Search Location',
+                hintStyle: TextStyle(
+                  color: Color(0xffDDDADA),
+                  fontSize: 15,
+                ),
+                border: InputBorder.none,
+                prefixIcon: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: SvgPicture.asset(
+                    'assets/icons/loc-1.svg',
+                    colorFilter: const ColorFilter.mode(
+                      Color.fromARGB(255, 109, 107, 106),
+                      BlendMode.srcIn,
                     ),
                   ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
                 ),
-                onChanged: (value) {
-                  searchedLocation = value;
-                  searchLocation(searchedLocation);
-                },
               ),
-            ],
+              onChanged: (value) {
+                searchedLocation = value;
+                searchLocation(searchedLocation);
+              },
+            ),
           ),
         ),
         IconButton(
           onPressed: () async {
             searchLocation(searchedLocation);
           },
-          icon: const Icon(Icons.search),
+          icon: Icon(
+            Icons.search,
+            color: Color(0xffDDDADA),
+          ),
         ),
       ],
-    );
-  }
+    ),
+  );
+}
+
 
   Widget buildFloatingActionButton() {
   return Padding(
