@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class safety_std extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
+        backgroundColor: Colors.grey[200],
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.black),
