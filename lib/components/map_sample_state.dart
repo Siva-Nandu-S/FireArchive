@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geocoding/geocoding.dart';
+
 
 class MapSampleState extends State<MapSample> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -157,9 +159,44 @@ class MapSampleState extends State<MapSample> {
   }
 
 
-  void searchLocation(searchedLocation){
-    
+ void searchLocation(String searchedLocation) async {
+  try {
+    List<Location> locations = await locationFromAddress(searchedLocation);
+
+    if (locations.isNotEmpty) {
+      Location firstLocation = locations.first;
+      double latitude = firstLocation.latitude;
+      double longitude = firstLocation.longitude;
+
+
+      markers.add(
+        Marker(
+          markerId: const MarkerId("searchedLocation"),
+          position: LatLng(latitude, longitude),
+          infoWindow: InfoWindow(
+            title: searchedLocation,
+          ),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+        ),
+      );
+
+      // Move the camera to the searched location
+      CameraPosition cameraPosition = CameraPosition(
+        target: LatLng(latitude, longitude),
+        zoom: 12,
+      );
+
+      final GoogleMapController controller = await _controller.future;
+      controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+      setState(() {});
+    } else {
+      // Handle the case where no location data is available
+      print('No location data available for: $searchedLocation');
+    }
+  } catch (e) {
+    print('Error searching location: $e');
   }
+}
 
 
   @override
@@ -178,7 +215,7 @@ class MapSampleState extends State<MapSample> {
   AppBar myAppBar() {
     return AppBar(
       title: const Text(
-        'FireArchive',
+        'FireArchive🧯',
         style: TextStyle(
           color: Colors.black,
           fontSize: 25,
@@ -296,8 +333,10 @@ class MapSampleState extends State<MapSample> {
   }
 
   Widget buildFloatingActionButton() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 50.0),
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 50.0),
+    child: Tooltip(
+      message: 'Current Location', // Tooltip text
       child: FloatingActionButton(
         onPressed: () async {
           getUserCurrentLocation().then((value) async {
@@ -319,13 +358,13 @@ class MapSampleState extends State<MapSample> {
             );
 
             final GoogleMapController controller = await _controller.future;
-            controller
-                .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+            controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
             setState(() {});
           });
         },
-        child: const Icon(Icons.local_activity),
+        child: const Icon(Icons.location_on), // Icon for current location
       ),
-    );
-  }
+    ),
+  );
+}
 }
