@@ -7,11 +7,16 @@ class BlinkingSOSButton extends StatefulWidget {
   const BlinkingSOSButton({required this.isDanger, Key? key}) : super(key: key);
 
   @override
-  _BlinkingSOSButtonState createState() => _BlinkingSOSButtonState();
+  _BlinkingSOSButtonState createState() => _BlinkingSOSButtonState(isDanger);
 }
 
 class _BlinkingSOSButtonState extends State<BlinkingSOSButton> {
   bool isBlinking = true; // Initial blinking state
+  bool isDanger = false;
+
+  _BlinkingSOSButtonState(isDanger){
+    this.isDanger = isDanger;
+  }
 
   // Function to toggle blinking state
   void toggleBlinking() {
@@ -41,6 +46,7 @@ class _BlinkingSOSButtonState extends State<BlinkingSOSButton> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
+        isDanger?
         showDialog(
             context: context,
             builder: (context) {
@@ -92,7 +98,7 @@ class _BlinkingSOSButtonState extends State<BlinkingSOSButton> {
                   ),
                 ],
               );
-            });
+            }):null;
       },
       child: Container(
         margin: const EdgeInsets.all(10),

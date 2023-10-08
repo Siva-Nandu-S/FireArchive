@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:fire_archive/components/NavBar.dart';
+import 'package:fire_archive/components/intensityMeter.dart';
 import 'package:http/http.dart' as http;
 import 'package:csv/csv.dart';
 import 'package:fire_archive/main.dart';
@@ -56,21 +57,21 @@ class AirQualityBar extends StatelessWidget {
 
 
 
+
 class MapSampleState extends State<MapSample> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
   final Completer<GoogleMapController> _controller =
       Completer(); // Controller for the Google Map.
   final TextEditingController _locationController =
       TextEditingController(); // Controller for the location text field.
   List<List<dynamic>>? locations; // List of hotspot locations.
 
-  var _userPosition_lat, _userPosition_lng; // User's current position.
-  bool _isDanger = false; // Whether the user is in a danger zone.
+  var _userPosition_lat, _userPosition_lng;
+  bool _isDanger = false;
 
   // Constants
   static const CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(20.42796133580664, 80.885749655962), // Default location for the Google Map.
+    target: LatLng(20.42796133580664, 80.885749655962),
     zoom: 4.5,
   );
 
@@ -84,45 +85,45 @@ class MapSampleState extends State<MapSample> {
     ),
   ];
 
-  late String searchedLocation; // Searched location for the Google Map.
+  late String searchedLocation;
 
   // Searched location for the Google Map.
 
-  List<List<dynamic>>? hotspots;  // List of hotspot locations.
+  List<List<dynamic>>? hotspots;
 
   @override
   void initState() {
     super.initState();
 
-    var client = http.Client(); // HTTP client for making requests.
+    var client = http.Client();
     client
         .get(Uri.parse(
-            'https://firms.modaps.eosdis.nasa.gov/api/country/csv/3d27399c8e1faa664e38874ea2330ac5/VIIRS_SNPP_NRT/IND/1'))
-        .then((response) async {  // Get the hotspot data from the NASA API.
+            'https://firms.modaps.eosdis.nasa.gov/api/country/csv/3d27399c8e1faa664e38874ea2330ac5/VIIRS_SNPP_NRT/IND/1/2023-10-07'))
+        .then((response) async {
       String data = response.body;
-      List<List<dynamic>> res = const CsvToListConverter().convert(data); // Convert the CSV data to a list.
-      hotspots = res; // Set the hotspots list to the converted CSV data.
+      List<List<dynamic>> res = const CsvToListConverter().convert(data);
+      hotspots = res;
 
-      setMarkers(hotspots!);  // Set the markers on the Google Map.
+      setMarkers(hotspots!);
     });
     
   }
 
-  List<Marker> spots = [];  // List of markers for the Google Map.
-  List<Marker> redSpots = []; // List of red markers for the Google Map.
+  List<Marker> spots = [];
+  List<Marker> redSpots = [];
 
   void setMarkers(locations) async {
-    var data = locations[0].join(',').toString(); // Get the data from the CSV file.
-    var dataList = data.split('\n');  // Split the data by new line.
+
+    var data = locations[0].join(',').toString();
+    var dataList = data.split('\n');
 
     for (int i = 1; i < dataList.length; i++) {
-
       var newData = dataList[i].split(',');
       double latitude = double.parse(newData[1]);
       double longitude = double.parse(newData[2]);
       double brightness = double.parse(newData[3]);
 
-      if (brightness > 355) { // If the brightness is greater than 355.
+      if (brightness > 355) {
         spots += <Marker>[
           Marker(
             markerId: MarkerId(i.toString()),
@@ -133,12 +134,12 @@ class MapSampleState extends State<MapSample> {
             icon:
                 BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
             onTap: () {
-              _showMyDialog(latitude, longitude); // Show the dialog for the marker.
+              _showMyDialog(latitude, longitude);
             },
           ),
         ];
-        redSpots += <Marker>[ // Add the marker to the red spots list.
-          Marker( 
+        redSpots += <Marker>[
+          Marker(
             markerId: MarkerId(i.toString()),
             position: LatLng(latitude, longitude),
             infoWindow: const InfoWindow(
@@ -146,7 +147,7 @@ class MapSampleState extends State<MapSample> {
             ),
           ),
         ];
-      } else if (brightness > 335) {  // If the brightness is greater than 335.
+      } else if (brightness > 335) {
         spots += <Marker>[
           Marker(
             markerId: MarkerId(i.toString()),
@@ -179,25 +180,26 @@ class MapSampleState extends State<MapSample> {
       }
     }
     setState(() {
-      markers.addAll(spots);  // Add the markers to the Google Map.
+      markers.addAll(spots);
     });
   }
 
-  Future<void> _showMyDialog(latitude, longitude) async { // Show the dialog for the marker.
-    var client = http.Client(); // HTTP client for making requests.
+  Future<void> _showMyDialog(latitude, longitude) async {
+    var client = http.Client();
     // ignore: prefer_typing_uninitialized_variables
     var data;
     await client
         .get(Uri.parse(
             'http://api.openweathermap.org/data/2.5/air_pollution?lat=$latitude&lon=$longitude&appid=7aec4f8d030b3228e06daddc0646ce4a'))
-        .then((response) async {  // Get the air quality data from the OpenWeather API.
-      data = json.decode(response.body);  // Decode the JSON data.
-    }); 
-    var aqi = data['list'][0]['main']['aqi']; // Get the air quality index.
-    data = data['list'][0]['components']; // Get the air quality data.
+        .then((response) async {
+      data = json.decode(response.body);
+    });
+    int aqi = data['list'][0]['main']['aqi'];
+    data = data['list'][0]['components'];
     // ignore: use_build_context_synchronously
 
-    Widget _buildDetailRow(String title, String value) {  // Build the details row.
+
+ Widget _buildDetailRow(String title, String value){  // Build the details row.
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,  
         children: <Widget>[
@@ -206,6 +208,7 @@ class MapSampleState extends State<MapSample> {
         ],
       );
     }
+    // ignore: use_build_context_synchronously
     return showDialog<void>(
       context: context,
       barrierDismissible: true, // user must tap button!
@@ -223,9 +226,9 @@ class MapSampleState extends State<MapSample> {
           const SizedBox(height: 10),
           const Text('Air Quality Index', style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 5),
-          AirQualityBar(aqi: aqi),
+          IntensityMeter(intensity: aqi,),
           const SizedBox(height: 15), 
-          _buildDetailRow('AQI', '$aqi'),
+          _buildDetailRow('Air Quality', '$aqi'),
           _buildDetailRow('CO', '${data['co']}'),
           _buildDetailRow('NO', '${data['no']}'),
           _buildDetailRow('NO2', '${data['no2']}'),
@@ -250,71 +253,67 @@ class MapSampleState extends State<MapSample> {
 );
   }
 
-  double degreesToRadians(double degrees) { // Convert degrees to radians.
-    return degrees * (pi / 180.0);  // Return the radians.
+  double degreesToRadians(double degrees) {
+    return degrees * (pi / 180.0);
   }
 
   void _setSOS() {
-    _userPosition_lat = degreesToRadians(_userPosition_lat);
-    _userPosition_lng = degreesToRadians(_userPosition_lng);
-
+    _userPosition_lat = degreesToRadians(15.6393);
+    _userPosition_lng = degreesToRadians(78.2842);
     for (int i = 0; i < redSpots.length; i++) {
-      double lat = degreesToRadians(redSpots[i].position.latitude); // Get the latitude of the hotspot.
-      double lng = degreesToRadians(redSpots[i].position.longitude);  // Get the longitude of the hotspot.
+      double lat = degreesToRadians(redSpots[i].position.latitude);
+      double lng = degreesToRadians(redSpots[i].position.longitude);
 
-      double dLng = lng - _userPosition_lng;  // Get the difference in longitude.
-
-      double dLat = lat - _userPosition_lat;  // Get the difference in latitude.
+      double dLng = lng - _userPosition_lng;
+      double dLat = lat - _userPosition_lat;
 
       double a = pow(sin(dLat / 2), 2) +
-          cos(_userPosition_lat) * cos(lat) * pow(sin(dLng / 2), 2);  // Get the distance.
+          cos(_userPosition_lat) * cos(lat) * pow(sin(dLng / 2), 2);
 
-      double c = 2 * asin(sqrt(a)); // Get the distance.
+      double c = 2 * asin(sqrt(a));
+      double r = 6371;
 
-      double r = 6371;  // Radius of the Earth.
-
-      double distance = c * r;  // Get the distance.
+      double distance = c * r;
 
       if (distance < 10) {
-        _isDanger = true; // Set the danger flag to true if the distance is less than 10KM.
+        _isDanger = true;
       }
     }
   }
 
+
   @override
-  void dispose() {  
+  void dispose() {
     // Dispose of resources here.
-    _locationController.dispose();  // Dispose of the location controller.
+    _locationController.dispose();
     super.dispose();
   }
 
-  Future<Position> getUserCurrentLocation() async { // Get the user's current location.
-    await Geolocator.requestPermission()  // Request permission to get the user's location.
+  Future<Position> getUserCurrentLocation() async {
+    await Geolocator.requestPermission()
         .then((value) {})
         .onError((error, stackTrace) async {
-      await Geolocator.requestPermission(); 
+      await Geolocator.requestPermission();
     });
-    return await Geolocator.getCurrentPosition(); // Return the user's current position.
-  }   
+    return await Geolocator.getCurrentPosition();
+  }
 
-  void searchLocation(String searchedLocation) async {  // Search for a location.
-    try {
-      List<Location> locations = await locationFromAddress(searchedLocation); // Get the location from the address.
+ void searchLocation(String searchedLocation) async {
+  try {
+    List<Location> locations = await locationFromAddress(searchedLocation);
 
-      if (locations.isNotEmpty) {
-        Location firstLocation = locations.first; // Get the first location.
-        double latitude = firstLocation.latitude; // Get the latitude.
-        double longitude = firstLocation.longitude; // Get the longitude.
+    if (locations.isNotEmpty) {
+      Location firstLocation = locations.first;
+      double latitude = firstLocation.latitude;
+      double longitude = firstLocation.longitude;
 
-        markers.add(
-          Marker(
-            markerId: const MarkerId("searchedLocation"), // Add the marker to the Google Map for the searched location.
-            position: LatLng(latitude, longitude),
-            infoWindow: InfoWindow(
-              title: searchedLocation,
-            ),
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-                BitmapDescriptor.hueViolet),
+
+      markers.add(
+        Marker(
+          markerId: const MarkerId("searchedLocation"),
+          position: LatLng(latitude, longitude),
+          infoWindow: InfoWindow(
+            title: searchedLocation,
           ),
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
         ),
@@ -323,7 +322,7 @@ class MapSampleState extends State<MapSample> {
       // Move the camera to the searched location
       CameraPosition cameraPosition = CameraPosition(
         target: LatLng(latitude, longitude),
-        zoom: 12,
+        zoom: 8,
       );
 
       final GoogleMapController controller = await _controller.future;
@@ -336,6 +335,7 @@ class MapSampleState extends State<MapSample> {
   } catch (e) {
     print('Error searching location: $e');
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -346,10 +346,9 @@ class MapSampleState extends State<MapSample> {
       backgroundColor: Colors.white,
       body: buildBody(),
       floatingActionButton: buildFloatingActionButton(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,  // Set the location of the floating action button.
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
   }
-
 
  AppBar myAppBar() {
   return AppBar(
@@ -396,8 +395,8 @@ class MapSampleState extends State<MapSample> {
             mapType: MapType.normal,
             markers: Set<Marker>.of(markers),
             initialCameraPosition: _kGooglePlex,
-            onMapCreated: (GoogleMapController controller) { // Create the Google Map.
-              _controller.complete(controller); // Complete the controller.
+            onMapCreated: (GoogleMapController controller) {
+              _controller.complete(controller);
             },
           ),
         ),
@@ -455,47 +454,45 @@ class MapSampleState extends State<MapSample> {
     );
   }
 
-  Widget buildFloatingActionButton() {  // Build the floating action button.
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 50.0),
-      child: Tooltip(
-        message: 'Current Location', // Tooltip text
-        child: FloatingActionButton(
-          onPressed: () async {
-            getUserCurrentLocation().then((value) async {
-              markers.add(
-                Marker(
-                  markerId: const MarkerId("0"),
-                  position: LatLng(value.latitude, value.longitude),
-                  infoWindow: const InfoWindow(
-                    title: 'My Current Location',
-                  ),
-                  icon: BitmapDescriptor.defaultMarkerWithHue(
-                      BitmapDescriptor.hueAzure),
-                  onTap: () {
-                    _showMyDialog(value.latitude, value.longitude);
-                  },
+  Widget buildFloatingActionButton() {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 50.0),
+    child: Tooltip(
+      message: 'Current Location', // Tooltip text
+      child: FloatingActionButton(
+        onPressed: () async {
+          getUserCurrentLocation().then((value) async {
+            markers.add(
+              Marker(
+                markerId: const MarkerId("0"),
+                position: LatLng(value.latitude, value.longitude),
+                infoWindow: const InfoWindow(
+                  title: 'My Current Location',
                 ),
-              );
+                icon: BitmapDescriptor.defaultMarkerWithHue(
+                    BitmapDescriptor.hueAzure),
+                onTap: () {
+                  _showMyDialog(value.latitude, value.longitude);
+                },
+              ),
+            );
 
-              CameraPosition cameraPosition = CameraPosition(
-                target: LatLng(value.latitude, value.longitude),
-                zoom: 14,
-              );
+            CameraPosition cameraPosition = CameraPosition(
+              target: LatLng(value.latitude, value.longitude),
+              zoom: 8,
+            );
 
-              _userPosition_lat = value.latitude; // Set the user's current latitude.
-              _userPosition_lng = value.longitude;  // Set the user's current longitude.
+            _userPosition_lat = value.latitude;
+            _userPosition_lng = value.longitude;
 
-              final GoogleMapController controller = await _controller.future;
-              controller.animateCamera(
-                  CameraUpdate.newCameraPosition(cameraPosition));
-              setState(() {});
+            final GoogleMapController controller = await _controller.future;
+            controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+            setState(() {});
 
-              _setSOS();  // Set the SOS flag if the user is in a danger zone.
-            });
-          },
-          child: const Icon(Icons.location_on), // Icon for current location
-        ),
+            _setSOS();
+          });
+        },
+        child: const Icon(Icons.location_on), // Icon for current location
       ),
     ),
   );
