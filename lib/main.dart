@@ -8,7 +8,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:csv/csv.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:fire_archive/NavBar.dart';
+import 'package:fire_archive/components/NavBar.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:fire_archive/components/map_sample_state.dart';
 import 'package:label_marker/label_marker.dart';

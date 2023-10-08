@@ -6,10 +6,10 @@ class safety_std extends StatelessWidget {
         backgroundColor: Colors.grey[200],
         appBar: AppBar(
           leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.black),
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: Row(
+          title: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
@@ -32,12 +32,12 @@ class safety_std extends StatelessWidget {
           elevation: 4, // Increased elevation for a more prominent shadow
           actions: [
             IconButton(
-              icon: Icon(Icons.info),
+              icon: const Icon(Icons.info),
               color: Colors.black,
               onPressed: () {
                 // Add your info button action here
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
+                  const SnackBar(
                     content: Text(
                         'Standard procedures to reduce fire-related accidents'),
                     duration:
@@ -121,15 +121,15 @@ class SectionCard extends StatelessWidget {
           children: <Widget>[
             Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Colors.black),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
               content,
-              style: TextStyle(fontSize: 16, color: Colors.black87),
+              style: const TextStyle(fontSize: 16, color: Colors.black87),
             ),
           ],
         ),

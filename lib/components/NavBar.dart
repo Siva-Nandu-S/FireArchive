@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:fire_archive/helpline.dart';
-import 'package:fire_archive/safety_index.dart';
-import 'package:fire_archive/safety_std.dart';
+import 'package:fire_archive/components/helpline.dart';
+import 'package:fire_archive/components/safety_index.dart';
+import 'package:fire_archive/components/safety_std.dart';
 
 class NavBar extends StatelessWidget {
-  final padding = EdgeInsets.symmetric(horizontal: 20);
+  final padding = const EdgeInsets.symmetric(horizontal: 20);
 
   @override
   Widget build(BuildContext context) {
@@ -14,6 +14,14 @@ class NavBar extends StatelessWidget {
         child: ListView(
           children: <Widget>[
             DrawerHeader(
+              decoration: BoxDecoration(boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  spreadRadius: 5,
+                  blurRadius: 7,
+                  offset: const Offset(0, 3),
+                ),
+              ]),
               child: Stack(
                 children: [
                   Container(
@@ -31,7 +39,7 @@ class NavBar extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Center(
+                  const Center(
                     child: Text(
                       "Dashboard",
                       style: TextStyle(
@@ -42,14 +50,6 @@ class NavBar extends StatelessWidget {
                   ),
                 ],
               ),
-              decoration: BoxDecoration(boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  spreadRadius: 5,
-                  blurRadius: 7,
-                  offset: Offset(0, 3),
-                ),
-              ]),
             ),
             Container(
               padding: padding,
@@ -62,7 +62,7 @@ class NavBar extends StatelessWidget {
                     onClicked: () => selectedItem(context, 0),
                   ),
                   const SizedBox(height: 24),
-                  Divider(
+                  const Divider(
                     color: Colors.grey,
                     indent: 10,
                     endIndent: 20,
@@ -74,7 +74,7 @@ class NavBar extends StatelessWidget {
                     onClicked: () => selectedItem(context, 1),
                   ),
                   const SizedBox(height: 24),
-                  Divider(
+                  const Divider(
                     color: Colors.grey,
                     indent: 10,
                     endIndent: 20,
@@ -86,7 +86,7 @@ class NavBar extends StatelessWidget {
                     onClicked: () => selectedItem(context, 2),
                   ),
                   const SizedBox(height: 24),
-                  Divider(
+                  const Divider(
                     color: Colors.grey,
                     indent: 10,
                     endIndent: 20,
@@ -105,12 +105,12 @@ class NavBar extends StatelessWidget {
     required IconData icon,
     VoidCallback? onClicked,
   }) {
-    final color = Colors.black;
-    final hoverColor = Colors.white70;
+    const color = Colors.black;
+    const hoverColor = Colors.white70;
 
     return ListTile(
       leading: Icon(icon, color: color),
-      title: Text(text, style: TextStyle(color: color)),
+      title: Text(text, style: const TextStyle(color: color)),
       hoverColor: hoverColor,
       onTap: onClicked,
     );

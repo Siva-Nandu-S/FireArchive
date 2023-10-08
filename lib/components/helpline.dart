@@ -45,10 +45,10 @@ class ServicesPage extends StatelessWidget {
   AppBar buildAppBar(BuildContext context) {
     return AppBar(
       leading: IconButton(
-        icon: Icon(Icons.arrow_back, color: Colors.black),
+        icon: const Icon(Icons.arrow_back, color: Colors.black),
         onPressed: () => Navigator.of(context).pop(),
       ),
-      title: Row(
+      title: const Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(width: 8),
@@ -70,11 +70,11 @@ class ServicesPage extends StatelessWidget {
 
   IconButton buildInfoIconButton(BuildContext context) {
     return IconButton(
-      icon: Icon(Icons.info),
+      icon: const Icon(Icons.info),
       color: Colors.black,
       onPressed: () {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text(
               'Emergency Numbers',
             ),
@@ -88,7 +88,7 @@ class ServicesPage extends StatelessWidget {
   ListView buildServiceList() {
     return ListView.builder(
       itemCount: services.length,
-      padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
       itemBuilder: (context, index) {
         final service = services[index];
         return buildServiceTab(service);
@@ -106,13 +106,13 @@ class ServicesPage extends StatelessWidget {
             color: Colors.grey.withOpacity(0.3),
             spreadRadius: 1,
             blurRadius: 4,
-            offset: Offset(0, 2), // Add a subtle box shadow
+            offset: const Offset(0, 2), // Add a subtle box shadow
           ),
         ],
       ),
-      margin: EdgeInsets.only(bottom: 16.0), // Increased space between tabs
+      margin: const EdgeInsets.only(bottom: 16.0), // Increased space between tabs
       child: ListTile(
-        contentPadding: EdgeInsets.all(16.0),
+        contentPadding: const EdgeInsets.all(16.0),
         tileColor: Colors.transparent, // Transparent background
         leading: Icon(
           service.icon,
@@ -121,7 +121,7 @@ class ServicesPage extends StatelessWidget {
         ),
         title: Text(
           service.name,
-          style: TextStyle(
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 18.0,
             color: Colors.black, // Text color
