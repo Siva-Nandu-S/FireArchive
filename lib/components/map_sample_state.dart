@@ -403,7 +403,7 @@ class MapSampleState extends State<MapSample> {
                 ),
                 onChanged: (value) {
                   searchedLocation = value;
-                  // searchLocation(searchedLocation);
+                  searchLocation(searchedLocation);
                 },
               ),
             ],
@@ -411,7 +411,7 @@ class MapSampleState extends State<MapSample> {
         ),
         IconButton(
           onPressed: () async {
-            // Add your search functionality here.
+            searchLocation(searchedLocation);
           },
           icon: const Icon(Icons.search),
         ),
