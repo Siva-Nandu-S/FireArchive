@@ -115,4 +115,3 @@ class _BlinkingSOSButtonState extends State<BlinkingSOSButton> {
     );
   }
 }
-
