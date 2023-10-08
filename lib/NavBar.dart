@@ -16,14 +16,11 @@ class NavBar extends StatelessWidget {
             DrawerHeader(
               child: Stack(
                 children: [
-                  Image.network(
-                    'https://s01.sgp1.cdn.digitaloceanspaces.com/article/176553-utozsasvkp-1656677011.jpg',
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                  ),
                   Container(
                     decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage("assets/icons/drawerheader.jpg"),
+                        fit: BoxFit.cover),
                       gradient: LinearGradient(
                         begin: Alignment.bottomCenter,
                         end: Alignment.topCenter,
@@ -125,7 +122,7 @@ class NavBar extends StatelessWidget {
     switch (index) {
       case 0:
         Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => Safety_index(),
+          builder: (context) => AirQualityTable(),
         ));
         break;
       case 1:
