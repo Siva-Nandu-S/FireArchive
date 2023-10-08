@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import "dart:math" show asin, cos, pi, pow, sin, sqrt;
 import 'package:geocoding/geocoding.dart';
 
 class AirQualityBar extends StatelessWidget {
@@ -62,6 +63,9 @@ class MapSampleState extends State<MapSample> {
       TextEditingController(); // Controller for the location text field.
   List<List<dynamic>>? locations; // List of hotspot locations.
 
+  var _userPosition_lat, _userPosition_lng;
+  bool _isDanger = false;
+
   // Constants
   static const CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(20.42796133580664, 80.885749655962),
@@ -71,10 +75,10 @@ class MapSampleState extends State<MapSample> {
   List<Marker> markers = <Marker>[
     const Marker(
       markerId: MarkerId('1'),
-      position: LatLng(20.42796133580664, 75.885749655962),
+      // position: LatLng(20.42796133580664, 75.885749655962),
       infoWindow: InfoWindow(
-        title: 'Some Position',
-      ),
+          // title: 'Some Position',
+          ),
     ),
   ];
 
@@ -91,23 +95,20 @@ class MapSampleState extends State<MapSample> {
     var client = http.Client();
     client
         .get(Uri.parse(
-            'https://firms.modaps.eosdis.nasa.gov/api/country/csv/3d27399c8e1faa664e38874ea2330ac5/VIIRS_NOAA20_NRT/IND/1/2023-10-07'))
+            'https://firms.modaps.eosdis.nasa.gov/api/country/csv/3d27399c8e1faa664e38874ea2330ac5/VIIRS_SNPP_NRT/IND/1/2023-10-07'))
         .then((response) async {
       String data = response.body;
       List<List<dynamic>> res = const CsvToListConverter().convert(data);
-      print("From Main Function");
       hotspots = res;
 
       setMarkers(hotspots!);
     });
-
-    // _setMarker(LatLng(37.42796133580664, -122.085749655962));
   }
 
   List<Marker> spots = [];
+  List<Marker> redSpots = [];
 
   void setMarkers(locations) async {
-    print("From setMarkers Method");
 
     var data = locations[0].join(',').toString();
     var dataList = data.split('\n');
@@ -116,24 +117,65 @@ class MapSampleState extends State<MapSample> {
       var newData = dataList[i].split(',');
       double latitude = double.parse(newData[1]);
       double longitude = double.parse(newData[2]);
+      double brightness = double.parse(newData[3]);
       String place = '$latitude,$longitude';
 
-      spots += <Marker>[
-        Marker(
-          markerId: MarkerId(i.toString()),
-          position: LatLng(latitude, longitude),
-          infoWindow: const InfoWindow(
-            title: '',
+      if (brightness > 355) {
+        spots += <Marker>[
+          Marker(
+            markerId: MarkerId(i.toString()),
+            position: LatLng(latitude, longitude),
+            infoWindow: const InfoWindow(
+              title: '',
+            ),
+            icon:
+                BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+            onTap: () {
+              _showMyDialog(latitude, longitude);
+            },
           ),
-          icon:
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
-          onTap: () {
-            _showMyDialog(latitude, longitude);
-          },
-        ),
-      ];
+        ];
+        redSpots += <Marker>[
+          Marker(
+            markerId: MarkerId(i.toString()),
+            position: LatLng(latitude, longitude),
+            infoWindow: const InfoWindow(
+              title: '',
+            ),
+          ),
+        ];
+      } else if (brightness > 335) {
+        spots += <Marker>[
+          Marker(
+            markerId: MarkerId(i.toString()),
+            position: LatLng(latitude, longitude),
+            infoWindow: const InfoWindow(
+              title: '',
+            ),
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueOrange),
+            onTap: () {
+              _showMyDialog(latitude, longitude);
+            },
+          ),
+        ];
+      } else {
+        spots += <Marker>[
+          Marker(
+            markerId: MarkerId(i.toString()),
+            position: LatLng(latitude, longitude),
+            infoWindow: const InfoWindow(
+              title: '',
+            ),
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueYellow),
+            onTap: () {
+              _showMyDialog(latitude, longitude);
+            },
+          ),
+        ];
+      }
     }
-    print('spots: $spots');
     setState(() {
       markers.addAll(spots);
     });
@@ -145,12 +187,15 @@ class MapSampleState extends State<MapSample> {
     var data;
     await client
         .get(Uri.parse(
-            'http://api.openweathermap.org/data/2.5/air_pollution?lat=${latitude}&lon=${longitude}&appid=7aec4f8d030b3228e06daddc0646ce4a'))
+            'http://api.openweathermap.org/data/2.5/air_pollution?lat=$latitude&lon=$longitude&appid=7aec4f8d030b3228e06daddc0646ce4a'))
         .then((response) async {
       data = json.decode(response.body);
     });
     var aqi = data['list'][0]['main']['aqi'];
     data = data['list'][0]['components'];
+    
+    
+    
     print(data);
     // ignore: use_build_context_synchronously
     Widget _buildDetailRow(String label, String value) {
@@ -207,6 +252,37 @@ class MapSampleState extends State<MapSample> {
 
   }
 
+  double degreesToRadians(double degrees) {
+    return degrees * (pi / 180.0);
+  }
+
+  void _setSOS() {
+    _userPosition_lat = degreesToRadians(15.6393300);
+    _userPosition_lng = degreesToRadians(78.2842300);
+    for (int i = 0; i < redSpots.length; i++) {
+      double lat = degreesToRadians(redSpots[i].position.latitude);
+      double lng = degreesToRadians(redSpots[i].position.longitude);
+
+      double dLng = lng - _userPosition_lng;
+
+      double dLat = lat - _userPosition_lat;
+
+      double a = pow(sin(dLat / 2), 2) +
+          cos(_userPosition_lat) * cos(lat) * pow(sin(dLng / 2), 2);
+
+      double c = 2 * asin(sqrt(a));
+
+      double r = 6371;
+
+      double distance = c * r;
+
+      if (distance < 10) {
+        _isDanger = true;
+      }
+    }
+  }
+
+
   @override
   void dispose() {
     // Dispose of resources here.
@@ -219,29 +295,26 @@ class MapSampleState extends State<MapSample> {
         .then((value) {})
         .onError((error, stackTrace) async {
       await Geolocator.requestPermission();
-      print("ERROR: $error");
     });
     return await Geolocator.getCurrentPosition();
   }
 
-  void searchLocation(String searchedLocation) async {
-    try {
-      List<Location> locations = await locationFromAddress(searchedLocation);
+ void searchLocation(String searchedLocation) async {
+  try {
+    List<Location> locations = await locationFromAddress(searchedLocation);
 
-      if (locations.isNotEmpty) {
-        Location firstLocation = locations.first;
-        double latitude = firstLocation.latitude;
-        double longitude = firstLocation.longitude;
+    if (locations.isNotEmpty) {
+      Location firstLocation = locations.first;
+      double latitude = firstLocation.latitude;
+      double longitude = firstLocation.longitude;
 
-        markers.add(
-          Marker(
-            markerId: const MarkerId("searchedLocation"),
-            position: LatLng(latitude, longitude),
-            infoWindow: InfoWindow(
-              title: searchedLocation,
-            ),
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-                BitmapDescriptor.hueViolet),
+
+      markers.add(
+        Marker(
+          markerId: const MarkerId("searchedLocation"),
+          position: LatLng(latitude, longitude),
+          infoWindow: InfoWindow(
+            title: searchedLocation,
           ),
         );
 
@@ -263,6 +336,7 @@ class MapSampleState extends State<MapSample> {
       print('Error searching location: $e');
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -309,7 +383,22 @@ class MapSampleState extends State<MapSample> {
       actions: [
         GestureDetector(
           onTap: () {
-            // Handle admin icon tap
+            showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text('SOS'),
+                    content: const Text('You are in a danger zone'),
+                    actions: <Widget>[
+                      TextButton(
+                        child: const Text('OK'),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      )
+                    ],
+                  );
+                });
           },
           child: Container(
             margin: const EdgeInsets.all(10),
@@ -319,9 +408,9 @@ class MapSampleState extends State<MapSample> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.admin_panel_settings,
-              color: Colors.black,
+              color: _isDanger ? Colors.red : Colors.black,
             ),
           ),
         ),
@@ -389,7 +478,7 @@ class MapSampleState extends State<MapSample> {
         ),
         IconButton(
           onPressed: () async {
-            // Add your search functionality here.
+            searchLocation(searchedLocation);
           },
           icon: const Icon(Icons.search),
         ),
@@ -398,38 +487,44 @@ class MapSampleState extends State<MapSample> {
   }
 
   Widget buildFloatingActionButton() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 50.0),
-      child: Tooltip(
-        message: 'Current Location', // Tooltip text
-        child: FloatingActionButton(
-          onPressed: () async {
-            getUserCurrentLocation().then((value) async {
-              markers.add(
-                Marker(
-                  markerId: const MarkerId("2"),
-                  position: LatLng(value.latitude, value.longitude),
-                  infoWindow: const InfoWindow(
-                    title: 'My Current Location',
-                  ),
-                  icon: BitmapDescriptor.defaultMarkerWithHue(
-                      BitmapDescriptor.hueAzure),
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 50.0),
+    child: Tooltip(
+      message: 'Current Location', // Tooltip text
+      child: FloatingActionButton(
+        onPressed: () async {
+          getUserCurrentLocation().then((value) async {
+            markers.add(
+              Marker(
+                markerId: const MarkerId("0"),
+                position: LatLng(value.latitude, value.longitude),
+                infoWindow: const InfoWindow(
+                  title: 'My Current Location',
                 ),
-              );
+                icon: BitmapDescriptor.defaultMarkerWithHue(
+                    BitmapDescriptor.hueAzure),
+                onTap: () {
+                  _showMyDialog(value.latitude, value.longitude);
+                },
+              ),
+            );
 
-              CameraPosition cameraPosition = CameraPosition(
-                target: LatLng(value.latitude, value.longitude),
-                zoom: 14,
-              );
+            CameraPosition cameraPosition = CameraPosition(
+              target: LatLng(value.latitude, value.longitude),
+              zoom: 14,
+            );
 
-              final GoogleMapController controller = await _controller.future;
-              controller.animateCamera(
-                  CameraUpdate.newCameraPosition(cameraPosition));
-              setState(() {});
-            });
-          },
-          child: const Icon(Icons.location_on), // Icon for current location
-        ),
+            _userPosition_lat = value.latitude;
+            _userPosition_lng = value.longitude;
+
+            final GoogleMapController controller = await _controller.future;
+            controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+            setState(() {});
+
+            _setSOS();
+          });
+        },
+        child: const Icon(Icons.location_on), // Icon for current location
       ),
     );
   }
