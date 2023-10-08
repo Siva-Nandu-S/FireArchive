@@ -10,6 +10,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import "dart:math" show asin, cos, pi, pow, sin, sqrt;
 import 'package:geocoding/geocoding.dart';
+import 'package:fire_archive/components/alert_button.dart';
 
 class AirQualityBar extends StatelessWidget {
   final int aqi; // Air Quality Index value
@@ -103,6 +104,7 @@ class MapSampleState extends State<MapSample> {
 
       setMarkers(hotspots!);
     });
+    
   }
 
   List<Marker> spots = [];
@@ -118,7 +120,6 @@ class MapSampleState extends State<MapSample> {
       double latitude = double.parse(newData[1]);
       double longitude = double.parse(newData[2]);
       double brightness = double.parse(newData[3]);
-      String place = '$latitude,$longitude';
 
       if (brightness > 355) {
         spots += <Marker>[
@@ -351,72 +352,41 @@ class MapSampleState extends State<MapSample> {
     );
   }
 
-  AppBar myAppBar() {
-    return AppBar(
-      title: const Text(
-        'FireArchive🧯',
-        style: TextStyle(
-          color: Colors.black,
-          fontSize: 25,
-          fontWeight: FontWeight.bold,
+ AppBar myAppBar() {
+  return AppBar(
+    title: const Text(
+      'FireArchive🧯',
+      style: TextStyle(
+        color: Colors.black,
+        fontSize: 25,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+    backgroundColor: Colors.white,
+    elevation: 0.0,
+    centerTitle: true,
+    leading: GestureDetector(
+      onTap: () {
+        // Handle menu icon tap
+        _scaffoldKey.currentState?.openDrawer();
+      },
+      // Handle menu
+      child: Container(
+        margin: const EdgeInsets.all(10),
+        alignment: Alignment.center,
+        child: SvgPicture.asset(
+          'assets/icons/menu-1.svg',
+          height: 35,
+          width: 35,
         ),
       ),
-      backgroundColor: Colors.white,
-      elevation: 0.0,
-      centerTitle: true,
-      leading: GestureDetector(
-        onTap: () {
-          // Handle menu icon tap
-          _scaffoldKey.currentState?.openDrawer();
-        },
-        // Handle menu
-        child: Container(
-          margin: const EdgeInsets.all(10),
-          alignment: Alignment.center,
-          child: SvgPicture.asset(
-            'assets/icons/menu-1.svg',
-            height: 35,
-            width: 35,
-          ),
-        ),
-      ),
-      actions: [
-        GestureDetector(
-          onTap: () {
-            showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: const Text('SOS'),
-                    content: const Text('You are in a danger zone'),
-                    actions: <Widget>[
-                      TextButton(
-                        child: const Text('OK'),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      )
-                    ],
-                  );
-                });
-          },
-          child: Container(
-            margin: const EdgeInsets.all(10),
-            alignment: Alignment.center,
-            width: 37,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              Icons.admin_panel_settings,
-              color: _isDanger ? Colors.red : Colors.black,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+    ),
+    actions: [
+      BlinkingSOSButton(isDanger: _isDanger,), // Use the BlinkingSOSButton widget here
+    ],
+  );
+}
+
 
   Widget buildBody() {
     return Column(
