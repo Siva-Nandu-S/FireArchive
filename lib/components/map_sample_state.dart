@@ -316,6 +316,9 @@ class MapSampleState extends State<MapSample> {
             title: searchedLocation,
           ),
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+          onTap: () {
+            _showMyDialog(latitude, longitude);
+          },
         ),
       );
 
