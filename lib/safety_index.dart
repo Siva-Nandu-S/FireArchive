@@ -4,7 +4,7 @@ void main() {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatelessWidget { // MyApplication
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
