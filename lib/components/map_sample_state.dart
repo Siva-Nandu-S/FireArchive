@@ -56,6 +56,7 @@ class AirQualityBar extends StatelessWidget {
 
 
 
+
 class MapSampleState extends State<MapSample> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final Completer<GoogleMapController> _controller =
@@ -194,39 +195,35 @@ class MapSampleState extends State<MapSample> {
     });
     var aqi = data['list'][0]['main']['aqi'];
     data = data['list'][0]['components'];
-    
-    
-    
-    print(data);
     // ignore: use_build_context_synchronously
-    Widget _buildDetailRow(String label, String value) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      Text(label),
-      Text(value),
-    ],
-  );
-}
+ Widget _buildDetailRow(String title, String value) {  // Build the details row.
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,  
+        children: <Widget>[
+          Text(title),
+          Text(value),
+        ],
+      );
+    }
     return showDialog<void>(
       context: context,
       barrierDismissible: true, // user must tap button!
       builder: (BuildContext context) {
     return AlertDialog(
-      title: Text('Details', style: TextStyle(fontWeight: FontWeight.bold)),
+      title: const Text('Details', style: TextStyle(fontWeight: FontWeight.bold)),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15.0),
       ),
       content: Container(
-        height: 300,
+        height: 310,
         width: 100,
         child: Column(
         children: <Widget>[
-          SizedBox(height: 10),
-          Text('Air Quality Index', style: TextStyle(fontWeight: FontWeight.bold)),
-          SizedBox(height: 5),
+          const SizedBox(height: 10),
+          const Text('Air Quality Index', style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 5),
           AirQualityBar(aqi: aqi),
-          SizedBox(height: 15),
+          const SizedBox(height: 15), 
           _buildDetailRow('AQI', '$aqi'),
           _buildDetailRow('CO', '${data['co']}'),
           _buildDetailRow('NO', '${data['no']}'),
@@ -250,7 +247,6 @@ class MapSampleState extends State<MapSample> {
     );
   },
 );
-
   }
 
   double degreesToRadians(double degrees) {
@@ -258,8 +254,8 @@ class MapSampleState extends State<MapSample> {
   }
 
   void _setSOS() {
-    _userPosition_lat = degreesToRadians(15.6393300);
-    _userPosition_lng = degreesToRadians(78.2842300);
+    _userPosition_lat = degreesToRadians(_userPosition_lat);
+    _userPosition_lng = degreesToRadians(_userPosition_lng);
     for (int i = 0; i < redSpots.length; i++) {
       double lat = degreesToRadians(redSpots[i].position.latitude);
       double lng = degreesToRadians(redSpots[i].position.longitude);
@@ -317,25 +313,25 @@ class MapSampleState extends State<MapSample> {
           infoWindow: InfoWindow(
             title: searchedLocation,
           ),
-        );
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+        ),
+      );
 
-        // Move the camera to the searched location
-        CameraPosition cameraPosition = CameraPosition(
-          target: LatLng(latitude, longitude),
-          zoom: 12,
-        );
+      // Move the camera to the searched location
+      CameraPosition cameraPosition = CameraPosition(
+        target: LatLng(latitude, longitude),
+        zoom: 12,
+      );
 
-        final GoogleMapController controller = await _controller.future;
-        controller
-            .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
-        setState(() {});
-      } else {
-        // Handle the case where no location data is available
-        print('No location data available for: $searchedLocation');
-      }
-    } catch (e) {
-      print('Error searching location: $e');
+      final GoogleMapController controller = await _controller.future;
+      controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+      setState(() {});
+    } else {
+      // Handle the case where no location data is available
+      print('No location data available for: $searchedLocation');
     }
+  } catch (e) {
+    print('Error searching location: $e');
   }
 }
 
@@ -355,7 +351,7 @@ class MapSampleState extends State<MapSample> {
  AppBar myAppBar() {
   return AppBar(
     title: const Text(
-      'FireArchive🧯',
+      'FireArchive🔥',
       style: TextStyle(
         color: Colors.black,
         fontSize: 25,
@@ -496,6 +492,7 @@ class MapSampleState extends State<MapSample> {
         },
         child: const Icon(Icons.location_on), // Icon for current location
       ),
-    );
-  }
+    ),
+  );
+}
 }
