@@ -46,7 +46,7 @@ class _BlinkingSOSButtonState extends State<BlinkingSOSButton> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        isDanger?
+        !isBlinking?
         showDialog(
             context: context,
             builder: (context) {
