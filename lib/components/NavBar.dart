@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:fire_archive/components/helpline.dart';
-import 'package:fire_archive/components/safety_index.dart';
+import 'package:flutter/material.dart'; 
+import 'package:fire_archive/components/helpline.dart'; // This imports the helpline.dart file.
+import 'package:fire_archive/components/safety_index.dart'; // This imports the safety_index.dart file.
 import 'package:fire_archive/components/safety_std.dart';
 
 class NavBar extends StatelessWidget {
-  final padding = const EdgeInsets.symmetric(horizontal: 20);
+  final padding = const EdgeInsets.symmetric(horizontal: 20); // Sets the padding for the navigation bar.
 
   @override
   Widget build(BuildContext context) {
@@ -27,8 +27,8 @@ class NavBar extends StatelessWidget {
                   Container(
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image: AssetImage("assets/icons/drawerheader.jpg"),
-                        fit: BoxFit.cover),
+                          image: AssetImage("assets/icons/drawerheader.jpg"), 
+                          fit: BoxFit.cover),
                       gradient: LinearGradient(
                         begin: Alignment.bottomCenter,
                         end: Alignment.topCenter,
@@ -69,9 +69,9 @@ class NavBar extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   buildMenuItem(
-                    text: 'Helpline Numbers',
-                    icon: Icons.phone,
-                    onClicked: () => selectedItem(context, 1),
+                    text: 'Safety Standards',
+                    icon: Icons.security_rounded,
+                    onClicked: () => selectedItem(context, 2),
                   ),
                   const SizedBox(height: 24),
                   const Divider(
@@ -81,9 +81,9 @@ class NavBar extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   buildMenuItem(
-                    text: 'Safety Standards',
-                    icon: Icons.security_rounded,
-                    onClicked: () => selectedItem(context, 2),
+                    text: 'Helpline Numbers',
+                    icon: Icons.phone,
+                    onClicked: () => selectedItem(context, 1),
                   ),
                   const SizedBox(height: 24),
                   const Divider(
@@ -116,7 +116,7 @@ class NavBar extends StatelessWidget {
     );
   }
 
-  void selectedItem(BuildContext context, int index) {
+  void selectedItem(BuildContext context, int index) {  
     Navigator.of(context).pop();
 
     switch (index) {
