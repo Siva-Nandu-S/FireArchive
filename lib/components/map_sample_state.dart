@@ -55,8 +55,10 @@ class AirQualityBar extends StatelessWidget {
 }
 
 
-class MapSampleState extends State<MapSample> { // For the state of the MapSample class.
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // Key for the scaffold.
+
+class MapSampleState extends State<MapSample> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   final Completer<GoogleMapController> _controller =
       Completer(); // Controller for the Google Map.
   final TextEditingController _locationController =
@@ -214,7 +216,7 @@ class MapSampleState extends State<MapSample> { // For the state of the MapSampl
         borderRadius: BorderRadius.circular(15.0),
       ),
       content: Container(
-        height: 300,
+        height: 310,
         width: 100,
         child: Column(
         children: <Widget>[
@@ -246,7 +248,6 @@ class MapSampleState extends State<MapSample> { // For the state of the MapSampl
     );
   },
 );
-
   }
 
   double degreesToRadians(double degrees) { // Convert degrees to radians.
@@ -254,8 +255,9 @@ class MapSampleState extends State<MapSample> { // For the state of the MapSampl
   }
 
   void _setSOS() {
-    _userPosition_lat = degreesToRadians(15.6393300); // User's current latitude. (default)
-    _userPosition_lng = degreesToRadians(78.2842300); // User's current longitude (default).
+    _userPosition_lat = degreesToRadians(_userPosition_lat);
+    _userPosition_lng = degreesToRadians(_userPosition_lng);
+
     for (int i = 0; i < redSpots.length; i++) {
       double lat = degreesToRadians(redSpots[i].position.latitude); // Get the latitude of the hotspot.
       double lng = degreesToRadians(redSpots[i].position.longitude);  // Get the longitude of the hotspot.
@@ -314,26 +316,25 @@ class MapSampleState extends State<MapSample> { // For the state of the MapSampl
             icon: BitmapDescriptor.defaultMarkerWithHue(
                 BitmapDescriptor.hueViolet),
           ),
-        );
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+        ),
+      );
 
-        // Move the camera to the searched location
-        CameraPosition cameraPosition = CameraPosition(
-          target: LatLng(latitude, longitude),
-          zoom: 12,
-        );
+      // Move the camera to the searched location
+      CameraPosition cameraPosition = CameraPosition(
+        target: LatLng(latitude, longitude),
+        zoom: 12,
+      );
 
-        final GoogleMapController controller = await _controller.future; // Get the Google Map controller.
-        controller
-            .animateCamera(CameraUpdate.newCameraPosition(cameraPosition)); // Animate the camera to the searched location.
-
-        setState(() {});
-      } else {
-        // Handle the case where no location data is available
-        print('No location data available for: $searchedLocation');
-      }
-    } catch (e) {
-      print('Error searching location: $e');
+      final GoogleMapController controller = await _controller.future;
+      controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+      setState(() {});
+    } else {
+      // Handle the case where no location data is available
+      print('No location data available for: $searchedLocation');
     }
+  } catch (e) {
+    print('Error searching location: $e');
   }
 
   @override
@@ -496,6 +497,7 @@ class MapSampleState extends State<MapSample> { // For the state of the MapSampl
           child: const Icon(Icons.location_on), // Icon for current location
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
