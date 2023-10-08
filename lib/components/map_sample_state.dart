@@ -10,6 +10,50 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import "dart:math" show asin, cos, pi, pow, sin, sqrt;
 import 'package:geocoding/geocoding.dart';
+import 'package:fire_archive/components/alert_button.dart';
+
+class AirQualityBar extends StatelessWidget {
+  final int aqi; // Air Quality Index value
+  final List<Color> gradientColors;
+
+  AirQualityBar({required this.aqi}) : gradientColors = _getGradientColors(aqi);
+
+  static List<Color> _getGradientColors(int aqi) {
+    // Define color ranges based on AQI levels
+    if (aqi >= 0 && aqi <= 1) {
+      // Green: 0 to 50
+      return [Colors.green, Colors.green];
+    } else if (aqi <= 2) {
+      // Yellow: 51 to 100
+      return [Colors.yellow, Colors.yellow];
+    } else if (aqi <= 3) {
+      // Orange: 101 to 150
+      return [Colors.orange, Colors.orange];
+    } else if (aqi <= 4) {
+      // Red: 151 to 200
+      return [Colors.red, Colors.red];
+    }else {
+      // Maroon: 301 and higher
+      return [const Color.fromARGB(255, 128, 0, 0), Color.fromARGB(255, 128, 0, 0),];
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 20.0, // Adjust the height of the bar as needed
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: gradientColors,
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+    );
+  }
+}
+
 
 
 class MapSampleState extends State<MapSample> {
@@ -60,6 +104,7 @@ class MapSampleState extends State<MapSample> {
 
       setMarkers(hotspots!);
     });
+    
   }
 
   List<Marker> spots = [];
@@ -75,7 +120,6 @@ class MapSampleState extends State<MapSample> {
       double latitude = double.parse(newData[1]);
       double longitude = double.parse(newData[2]);
       double brightness = double.parse(newData[3]);
-      String place = '$latitude,$longitude';
 
       if (brightness > 355) {
         spots += <Marker>[
@@ -150,39 +194,63 @@ class MapSampleState extends State<MapSample> {
     });
     var aqi = data['list'][0]['main']['aqi'];
     data = data['list'][0]['components'];
+    
+    
+    
+    print(data);
     // ignore: use_build_context_synchronously
+    Widget _buildDetailRow(String label, String value) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      Text(label),
+      Text(value),
+    ],
+  );
+}
     return showDialog<void>(
-        context: context,
-        barrierDismissible: false, // user must tap button!
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Details'),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: <Widget>[
-                  const Text('Air Quality Index: '),
-                  Text('AQI : ${aqi}'),
-                  Text('CO : ${data['co']}'),
-                  Text('NO : ${data['no']}'),
-                  Text('NO2 : ${data['no2']}'),
-                  Text('O3 : ${data['o3']}'),
-                  Text('SO2 : ${data['so2']}'),
-                  Text('PM2_5 : ${data['pm2_5']}'),
-                  Text('PM10 : ${data['pm10']}'),
-                  Text('NH3 : ${data['nh3']}'),
-                ],
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('Done'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        });
+      context: context,
+      barrierDismissible: true, // user must tap button!
+      builder: (BuildContext context) {
+    return AlertDialog(
+      title: Text('Details', style: TextStyle(fontWeight: FontWeight.bold)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
+      content: Container(
+        height: 300,
+        width: 100,
+        child: Column(
+        children: <Widget>[
+          SizedBox(height: 10),
+          Text('Air Quality Index', style: TextStyle(fontWeight: FontWeight.bold)),
+          SizedBox(height: 5),
+          AirQualityBar(aqi: aqi),
+          SizedBox(height: 15),
+          _buildDetailRow('AQI', '$aqi'),
+          _buildDetailRow('CO', '${data['co']}'),
+          _buildDetailRow('NO', '${data['no']}'),
+          _buildDetailRow('NO2', '${data['no2']}'),
+          _buildDetailRow('O3', '${data['o3']}'),
+          _buildDetailRow('SO2', '${data['so2']}'),
+          _buildDetailRow('PM2.5', '${data['pm2_5']}'),
+          _buildDetailRow('PM10', '${data['pm10']}'),
+          _buildDetailRow('NH3', '${data['nh3']}'),
+        ],
+      ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          child: Text('Done', style: TextStyle(color: Colors.blue)),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
+    );
+  },
+);
+
   }
 
   double degreesToRadians(double degrees) {
@@ -249,25 +317,25 @@ class MapSampleState extends State<MapSample> {
           infoWindow: InfoWindow(
             title: searchedLocation,
           ),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
-        ),
-      );
+        );
 
-      // Move the camera to the searched location
-      CameraPosition cameraPosition = CameraPosition(
-        target: LatLng(latitude, longitude),
-        zoom: 12,
-      );
+        // Move the camera to the searched location
+        CameraPosition cameraPosition = CameraPosition(
+          target: LatLng(latitude, longitude),
+          zoom: 12,
+        );
 
-      final GoogleMapController controller = await _controller.future;
-      controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
-      setState(() {});
-    } else {
-      // Handle the case where no location data is available
-      print('No location data available for: $searchedLocation');
+        final GoogleMapController controller = await _controller.future;
+        controller
+            .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+        setState(() {});
+      } else {
+        // Handle the case where no location data is available
+        print('No location data available for: $searchedLocation');
+      }
+    } catch (e) {
+      print('Error searching location: $e');
     }
-  } catch (e) {
-    print('Error searching location: $e');
   }
 }
 
@@ -284,72 +352,41 @@ class MapSampleState extends State<MapSample> {
     );
   }
 
-  AppBar myAppBar() {
-    return AppBar(
-      title: const Text(
-        'FireArchive🧯',
-        style: TextStyle(
-          color: Colors.black,
-          fontSize: 25,
-          fontWeight: FontWeight.bold,
+ AppBar myAppBar() {
+  return AppBar(
+    title: const Text(
+      'FireArchive🧯',
+      style: TextStyle(
+        color: Colors.black,
+        fontSize: 25,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+    backgroundColor: Colors.white,
+    elevation: 0.0,
+    centerTitle: true,
+    leading: GestureDetector(
+      onTap: () {
+        // Handle menu icon tap
+        _scaffoldKey.currentState?.openDrawer();
+      },
+      // Handle menu
+      child: Container(
+        margin: const EdgeInsets.all(10),
+        alignment: Alignment.center,
+        child: SvgPicture.asset(
+          'assets/icons/menu-1.svg',
+          height: 35,
+          width: 35,
         ),
       ),
-      backgroundColor: Colors.white,
-      elevation: 0.0,
-      centerTitle: true,
-      leading: GestureDetector(
-        onTap: () {
-          // Handle menu icon tap
-          _scaffoldKey.currentState?.openDrawer();
-        },
-        // Handle menu
-        child: Container(
-          margin: const EdgeInsets.all(10),
-          alignment: Alignment.center,
-          child: SvgPicture.asset(
-            'assets/icons/menu-1.svg',
-            height: 35,
-            width: 35,
-          ),
-        ),
-      ),
-      actions: [
-        GestureDetector(
-          onTap: () {
-            showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: const Text('SOS'),
-                    content: const Text('You are in a danger zone'),
-                    actions: <Widget>[
-                      TextButton(
-                        child: const Text('OK'),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      )
-                    ],
-                  );
-                });
-          },
-          child: Container(
-            margin: const EdgeInsets.all(10),
-            alignment: Alignment.center,
-            width: 37,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              Icons.admin_panel_settings,
-              color: _isDanger ? Colors.red : Colors.black,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+    ),
+    actions: [
+      BlinkingSOSButton(isDanger: _isDanger,), // Use the BlinkingSOSButton widget here
+    ],
+  );
+}
+
 
   Widget buildBody() {
     return Column(
@@ -459,7 +496,6 @@ class MapSampleState extends State<MapSample> {
         },
         child: const Icon(Icons.location_on), // Icon for current location
       ),
-    ),
-  );
-}
+    );
+  }
 }
