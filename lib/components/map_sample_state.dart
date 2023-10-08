@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:fire_archive/components/NavBar.dart';
 import 'package:http/http.dart' as http;
 import 'package:csv/csv.dart';
@@ -7,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
 
 class MapSampleState extends State<MapSample> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -20,7 +20,7 @@ class MapSampleState extends State<MapSample> {
   // Constants
   static const CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(20.42796133580664, 80.885749655962),
-    zoom: 1,
+    zoom: 4.5,
   );
 
   List<Marker> markers = <Marker>[
@@ -34,7 +34,7 @@ class MapSampleState extends State<MapSample> {
   ];
 
   late String searchedLocation;
-  
+
   // Searched location for the Google Map.
 
   List<List<dynamic>>? hotspots;
@@ -46,7 +46,7 @@ class MapSampleState extends State<MapSample> {
     var client = http.Client();
     client
         .get(Uri.parse(
-            'https://firms.modaps.eosdis.nasa.gov/api/country/csv/ecc82b64df96a0490420a20ea4546b65/VIIRS_SNPP_NRT/IND/1'))
+            'https://firms.modaps.eosdis.nasa.gov/api/country/csv/3d27399c8e1faa664e38874ea2330ac5/VIIRS_NOAA20_NRT/IND/1/2023-10-07'))
         .then((response) async {
       String data = response.body;
       List<List<dynamic>> res = const CsvToListConverter().convert(data);
@@ -58,7 +58,6 @@ class MapSampleState extends State<MapSample> {
 
     // _setMarker(LatLng(37.42796133580664, -122.085749655962));
   }
-
 
   List<Marker> spots = [];
 
@@ -72,22 +71,73 @@ class MapSampleState extends State<MapSample> {
       var newData = dataList[i].split(',');
       double latitude = double.parse(newData[1]);
       double longitude = double.parse(newData[2]);
+      String place = '$latitude,$longitude';
 
       spots += <Marker>[
         Marker(
-            markerId: MarkerId(i.toString()),
-            position: LatLng(latitude, longitude),
-            infoWindow: const InfoWindow(
-              title: '',
-            )),
+          markerId: MarkerId(i.toString()),
+          position: LatLng(latitude, longitude),
+          infoWindow: const InfoWindow(
+            title: '',
+          ),
+          icon:
+              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
+          onTap: () {
+            _showMyDialog(latitude,longitude);
+          },
+        ),
       ];
     }
+    print('spots: $spots');
     setState(() {
       markers.addAll(spots);
     });
   }
 
-
+  Future<void> _showMyDialog(latitude,longitude) async {
+    var client = http.Client();
+    // ignore: prefer_typing_uninitialized_variables
+    var data;
+    await client.get(Uri.parse(
+            'http://api.openweathermap.org/data/2.5/air_pollution?lat=${latitude}&lon=${longitude}&appid=7aec4f8d030b3228e06daddc0646ce4a'))
+        .then((response) async {
+        data = json.decode(response.body);
+        }); 
+        data = data['list'][0]['components'];
+        print(data);
+              // ignore: use_build_context_synchronously
+              return showDialog<void>(
+                  context: context,
+                  barrierDismissible: false, // user must tap button!
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('Details'),
+                      content: SingleChildScrollView(
+                        child: ListBody(
+                          children: <Widget>[
+                            const Text('Air Quality Index: '),
+                            Text('CO : ${data['co']}'),
+                            Text('NO : ${data['no']}'),
+                            Text('NO2 : ${data['no2']}'),
+                            Text('O3 : ${data['o3']}'),
+                            Text('SO2 : ${data['so2']}'),
+                            Text('PM2_5 : ${data['pm2_5']}'),
+                            Text('PM10 : ${data['pm10']}'),
+                            Text('NH3 : ${data['nh3']}'),
+                          ],
+                        ),
+                      ),
+                      actions: <Widget>[
+                        TextButton(
+                          child: const Text('Done'),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    );
+                  });
+            }
 
   @override
   void dispose() {
@@ -97,12 +147,20 @@ class MapSampleState extends State<MapSample> {
   }
 
   Future<Position> getUserCurrentLocation() async {
-    await Geolocator.requestPermission().then((value) {}).onError((error, stackTrace) async {
+    await Geolocator.requestPermission()
+        .then((value) {})
+        .onError((error, stackTrace) async {
       await Geolocator.requestPermission();
       print("ERROR: $error");
     });
     return await Geolocator.getCurrentPosition();
   }
+
+
+  void searchLocation(searchedLocation){
+    
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -169,7 +227,6 @@ class MapSampleState extends State<MapSample> {
     );
   }
 
-
   Widget buildBody() {
     return Column(
       children: [
@@ -187,7 +244,7 @@ class MapSampleState extends State<MapSample> {
       ],
     );
   }
-  
+
   Widget buildSearchRow() {
     return Row(
       children: [
@@ -222,6 +279,7 @@ class MapSampleState extends State<MapSample> {
                 ),
                 onChanged: (value) {
                   searchedLocation = value;
+                  searchLocation(searchedLocation);
                 },
               ),
             ],
@@ -250,7 +308,8 @@ class MapSampleState extends State<MapSample> {
                 infoWindow: const InfoWindow(
                   title: 'My Current Location',
                 ),
-                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+                icon: BitmapDescriptor.defaultMarkerWithHue(
+                    BitmapDescriptor.hueAzure),
               ),
             );
 
@@ -260,7 +319,8 @@ class MapSampleState extends State<MapSample> {
             );
 
             final GoogleMapController controller = await _controller.future;
-            controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+            controller
+                .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
             setState(() {});
           });
         },
