@@ -17,7 +17,7 @@ class AirQualityBar extends StatelessWidget {
   final int aqi; // Air Quality Index value
   final List<Color> gradientColors;
 
-  AirQualityBar({required this.aqi}) : gradientColors = _getGradientColors(aqi);
+  AirQualityBar({super.key, required this.aqi}) : gradientColors = _getGradientColors(aqi);
 
   static List<Color> _getGradientColors(int aqi) {
     // Define color ranges based on AQI levels
@@ -35,7 +35,7 @@ class AirQualityBar extends StatelessWidget {
       return [Colors.red, Colors.red];
     }else {
       // Maroon: 301 and higher
-      return [const Color.fromARGB(255, 128, 0, 0), Color.fromARGB(255, 128, 0, 0),];
+      return [const Color.fromARGB(255, 128, 0, 0), const Color.fromARGB(255, 128, 0, 0),];
     }
   }
 
@@ -66,6 +66,7 @@ class MapSampleState extends State<MapSample> {
       TextEditingController(); // Controller for the location text field.
   List<List<dynamic>>? locations; // List of hotspot locations.
 
+  // ignore: prefer_typing_uninitialized_variables
   var _userPosition_lat, _userPosition_lng;
   bool _isDanger = false;
 
@@ -199,7 +200,7 @@ class MapSampleState extends State<MapSample> {
     // ignore: use_build_context_synchronously
 
 
- Widget _buildDetailRow(String title, String value){  // Build the details row.
+ Widget buildDetailRow(String title, String value){  // Build the details row.
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,  
         children: <Widget>[
@@ -228,21 +229,21 @@ class MapSampleState extends State<MapSample> {
           const SizedBox(height: 5),
           IntensityMeter(intensity: aqi,),
           const SizedBox(height: 15), 
-          _buildDetailRow('Air Quality', '$aqi'),
-          _buildDetailRow('CO', '${data['co']}'),
-          _buildDetailRow('NO', '${data['no']}'),
-          _buildDetailRow('NO2', '${data['no2']}'),
-          _buildDetailRow('O3', '${data['o3']}'),
-          _buildDetailRow('SO2', '${data['so2']}'),
-          _buildDetailRow('PM2.5', '${data['pm2_5']}'),
-          _buildDetailRow('PM10', '${data['pm10']}'),
-          _buildDetailRow('NH3', '${data['nh3']}'),
+          buildDetailRow('Air Quality', '$aqi'),
+          buildDetailRow('CO', '${data['co']}'),
+          buildDetailRow('NO', '${data['no']}'),
+          buildDetailRow('NO2', '${data['no2']}'),
+          buildDetailRow('O3', '${data['o3']}'),
+          buildDetailRow('SO2', '${data['so2']}'),
+          buildDetailRow('PM2.5', '${data['pm2_5']}'),
+          buildDetailRow('PM10', '${data['pm10']}'),
+          buildDetailRow('NH3', '${data['nh3']}'),
         ],
       ),
       ),
       actions: <Widget>[
         TextButton(
-          child: Text('Done', style: TextStyle(color: Colors.blue)),
+          child: const Text('Done', style: TextStyle(color: Colors.blue)),
           onPressed: () {
             Navigator.of(context).pop();
           },
@@ -417,7 +418,7 @@ class MapSampleState extends State<MapSample> {
           color: Colors.grey.withOpacity(0.5),
           spreadRadius: 1,
           blurRadius: 4,
-          offset: Offset(0, 2),
+          offset: const Offset(0, 2),
         ),
       ],
     ),
@@ -430,7 +431,7 @@ class MapSampleState extends State<MapSample> {
               controller: _locationController,
               decoration: InputDecoration(
                 hintText: 'Search Location',
-                hintStyle: TextStyle(
+                hintStyle: const TextStyle(
                   color: Color(0xffDDDADA),
                   fontSize: 15,
                 ),
@@ -457,7 +458,7 @@ class MapSampleState extends State<MapSample> {
           onPressed: () async {
             searchLocation(searchedLocation);
           },
-          icon: Icon(
+          icon: const Icon(
             Icons.search,
             color: Color(0xffDDDADA),
           ),
