@@ -153,6 +153,7 @@ class MapSampleState extends State<MapSample> {
     var location = await placemarkFromCoordinates(latitude, longitude);
     print(location.toString());
     var fire_location = location[0].locality.toString();
+    if(fire_location == '') fire_location = "Unknown";
 
     int aqi = data['list'][0]['main']['aqi'];
     data = data['list'][0]['components'];
@@ -244,8 +245,8 @@ class MapSampleState extends State<MapSample> {
   }
 
   void _setSOS() {
-    _userPosition_lat = degreesToRadians(15.6393);
-    _userPosition_lng = degreesToRadians(78.2842);
+    _userPosition_lat = degreesToRadians(_userPosition_lat);
+    _userPosition_lng = degreesToRadians(_userPosition_lng);
     for (int i = 0; i < redSpots.length; i++) {
       double lat = degreesToRadians(redSpots[i].position.latitude);
       double lng = degreesToRadians(redSpots[i].position.longitude);
