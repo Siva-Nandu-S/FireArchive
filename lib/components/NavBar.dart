@@ -4,7 +4,9 @@ import 'package:fire_archive/components/safety_index.dart'; // This imports the 
 import 'package:fire_archive/components/safety_std.dart';
 
 class NavBar extends StatelessWidget {
-  final padding = const EdgeInsets.symmetric(horizontal: 20); // Sets the padding for the navigation bar.
+  final padding = const EdgeInsets.symmetric(horizontal: 20);
+
+  const NavBar({super.key}); // Sets the padding for the navigation bar.
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +25,7 @@ class NavBar extends StatelessWidget {
                   Colors.transparent
                 ],
               ),
-              image: DecorationImage(
+              image: const DecorationImage(
                 image: AssetImage("assets/icons/drawerheader.jpg"),
                 fit: BoxFit.cover,
               ),
@@ -32,11 +34,11 @@ class NavBar extends StatelessWidget {
                   color: Colors.black.withOpacity(0.2),
                   spreadRadius: 2,
                   blurRadius: 10,
-                  offset: Offset(0, 3),
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
-            child: Center(
+            child: const Center(
               child: Text(
                 "Dashboard",
                 style: TextStyle(
@@ -91,7 +93,7 @@ Widget buildMenuItem({
     ),
     title: Text(
       text,
-      style: TextStyle(
+      style: const TextStyle(
         color: Colors.black,
         fontSize: 20, // Adjust the text size
       ),

@@ -13,6 +13,7 @@ import "dart:math" show asin, cos, pi, pow, sin, sqrt;
 import 'package:geocoding/geocoding.dart';
 import 'package:fire_archive/components/alert_button.dart';
 
+
 class MapSampleState extends State<MapSample> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final Completer<GoogleMapController> _controller =
@@ -21,6 +22,7 @@ class MapSampleState extends State<MapSample> {
       TextEditingController(); // Controller for the location text field.
   List<List<dynamic>>? locations; // List of hotspot locations.
 
+  // ignore: prefer_typing_uninitialized_variables
   var _userPosition_lat, _userPosition_lng;
   bool _isDanger = false;
 
